@@ -199,6 +199,10 @@ public class TransactionRepository {
         return transactionTagDao.getTransactionIdsByTag(tagId);
     }
 
+    public LiveData<List<TransactionTag>> getAllTransactionTags() {
+        return transactionTagDao.getAllTransactionTags();
+    }
+
     public interface OnTransactionInsertedListener {
         void onTransactionInserted(long transactionId);
     }

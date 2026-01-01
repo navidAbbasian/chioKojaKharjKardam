@@ -1,5 +1,6 @@
 package com.example.chiokojakharjkardam.data.database.dao;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -29,5 +30,8 @@ public interface TransactionTagDao {
 
     @Query("SELECT transactionId FROM transaction_tags WHERE tagId = :tagId")
     List<Long> getTransactionIdsByTag(long tagId);
+
+    @Query("SELECT * FROM transaction_tags")
+    LiveData<List<TransactionTag>> getAllTransactionTags();
 }
 

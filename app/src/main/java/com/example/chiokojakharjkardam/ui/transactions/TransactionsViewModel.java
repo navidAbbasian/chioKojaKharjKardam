@@ -12,11 +12,13 @@ import com.example.chiokojakharjkardam.data.database.entity.BankCard;
 import com.example.chiokojakharjkardam.data.database.entity.Category;
 import com.example.chiokojakharjkardam.data.database.entity.Tag;
 import com.example.chiokojakharjkardam.data.database.entity.Transaction;
+import com.example.chiokojakharjkardam.data.database.entity.TransactionTag;
 import com.example.chiokojakharjkardam.data.repository.BankCardRepository;
 import com.example.chiokojakharjkardam.data.repository.CategoryRepository;
 import com.example.chiokojakharjkardam.data.repository.TagRepository;
 import com.example.chiokojakharjkardam.data.repository.TransactionRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,6 +37,7 @@ public class TransactionsViewModel extends AndroidViewModel {
     private final LiveData<List<Category>> allCategories;
     private final LiveData<List<BankCard>> allCards;
     private final LiveData<List<Tag>> allTags;
+    private final LiveData<List<TransactionTag>> allTransactionTags;
 
     private final MutableLiveData<Integer> currentFilter = new MutableLiveData<>(FILTER_ALL);
     private final MutableLiveData<Long> categoryFilter = new MutableLiveData<>(-1L); // -1 = همه
@@ -54,12 +57,14 @@ public class TransactionsViewModel extends AndroidViewModel {
         allCategories = categoryRepository.getAllCategories();
         allCards = cardRepository.getAllCards();
         allTags = tagRepository.getAllTags();
+        allTransactionTags = repository.getAllTransactionTags();
 
         filteredTransactions.addSource(allTransactions, transactions -> applyFilters());
         filteredTransactions.addSource(currentFilter, filter -> applyFilters());
         filteredTransactions.addSource(categoryFilter, filter -> applyFilters());
         filteredTransactions.addSource(cardFilter, filter -> applyFilters());
         filteredTransactions.addSource(tagFilter, filter -> applyFilters());
+        filteredTransactions.addSource(allTransactionTags, tags -> applyFilters());
     }
 
     private void applyFilters() {
@@ -100,8 +105,14 @@ public class TransactionsViewModel extends AndroidViewModel {
 
         // فیلتر بر اساس تگ
         if (tgFilter != null && tgFilter != -1) {
-            List<Long> transactionIdsWithTag = repository.getTransactionIdsByTag(tgFilter);
-            if (transactionIdsWithTag != null) {
+            List<TransactionTag> transactionTags = allTransactionTags.getValue();
+            if (transactionTags != null) {
+                List<Long> transactionIdsWithTag = new ArrayList<>();
+                for (TransactionTag tt : transactionTags) {
+                    if (tt.getTagId() == tgFilter) {
+                        transactionIdsWithTag.add(tt.getTransactionId());
+                    }
+                }
                 result = result.stream()
                         .filter(t -> transactionIdsWithTag.contains(t.getId()))
                         .collect(Collectors.toList());
