@@ -1,24 +1,63 @@
 package com.example.chiokojakharjkardam.ui.settings;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.example.chiokojakharjkardam.R;
+import com.example.chiokojakharjkardam.utils.BackupManager;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import java.util.Calendar;
 
 public class SettingsFragment extends Fragment {
 
     private SettingsViewModel viewModel;
     private TextView tvFamilyName;
+
+    // برای انتخاب محل ذخیره پشتیبان
+    private final ActivityResultLauncher<Intent> createBackupLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Uri uri = result.getData().getData();
+                    if (uri != null) {
+                        performBackup(uri);
+                    }
+                }
+            }
+    );
+
+    // برای انتخاب فایل پشتیبان برای بازیابی
+    private final ActivityResultLauncher<Intent> restoreBackupLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Uri uri = result.getData().getData();
+                    if (uri != null) {
+                        performRestore(uri);
+                    }
+                }
+            }
+    );
 
     @Nullable
     @Override
@@ -59,19 +98,121 @@ public class SettingsFragment extends Fragment {
         });
 
         MaterialCardView cardBackup = view.findViewById(R.id.card_backup);
-        cardBackup.setOnClickListener(v -> {
-            // TODO: Implement backup
-        });
+        cardBackup.setOnClickListener(v -> showBackupDialog());
 
         MaterialCardView cardRestore = view.findViewById(R.id.card_restore);
-        cardRestore.setOnClickListener(v -> {
-            // TODO: Implement restore
-        });
+        cardRestore.setOnClickListener(v -> showRestoreDialog());
 
         MaterialCardView cardAbout = view.findViewById(R.id.card_about);
-        cardAbout.setOnClickListener(v -> {
-            // TODO: Show about dialog
+        cardAbout.setOnClickListener(v -> showAboutDialog());
+    }
+
+    private void showBackupDialog() {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.backup_title)
+                .setMessage(R.string.backup_description)
+                .setPositiveButton(R.string.backup, (dialog, which) -> {
+                    // باز کردن فایل منیجر برای انتخاب محل ذخیره
+                    Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("application/octet-stream");
+                    intent.putExtra(Intent.EXTRA_TITLE, BackupManager.generateBackupFileName());
+                    createBackupLauncher.launch(intent);
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void showRestoreDialog() {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.restore_title)
+                .setMessage(getString(R.string.restore_description) + "\n\n" + getString(R.string.restore_warning))
+                .setPositiveButton(R.string.select_backup_file, (dialog, which) -> {
+                    // باز کردن فایل منیجر برای انتخاب فایل پشتیبان
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.setType("*/*");
+                    restoreBackupLauncher.launch(intent);
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void performBackup(Uri uri) {
+        BackupManager.createBackup(requireContext(), uri, new BackupManager.BackupCallback() {
+            @Override
+            public void onSuccess(String message) {
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() ->
+                        Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+                    );
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() ->
+                        Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
+                    );
+                }
+            }
         });
+    }
+
+    private void performRestore(Uri uri) {
+        BackupManager.restoreBackup(requireContext(), uri, new BackupManager.BackupCallback() {
+            @Override
+            public void onSuccess(String message) {
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> {
+                        new MaterialAlertDialogBuilder(requireContext())
+                                .setTitle(R.string.success)
+                                .setMessage(message)
+                                .setPositiveButton(R.string.yes, (dialog, which) -> {
+                                    // راه‌اندازی مجدد برنامه
+                                    requireActivity().finishAffinity();
+                                })
+                                .setCancelable(false)
+                                .show();
+                    });
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() ->
+                        Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
+                    );
+                }
+            }
+        });
+    }
+
+    private void showAboutDialog() {
+        View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_about, null);
+
+        // تنظیم نسخه
+        TextView tvVersion = dialogView.findViewById(R.id.tv_version);
+        try {
+            PackageInfo pInfo = requireContext().getPackageManager()
+                    .getPackageInfo(requireContext().getPackageName(), 0);
+            String version = pInfo.versionName;
+            tvVersion.setText(getString(R.string.version_format, version));
+        } catch (PackageManager.NameNotFoundException e) {
+            tvVersion.setText(getString(R.string.version_format, "1.0.0"));
+        }
+
+        // تنظیم کپی‌رایت
+        TextView tvCopyright = dialogView.findViewById(R.id.tv_copyright);
+        int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+        tvCopyright.setText(getString(R.string.copyright_format, currentYear));
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setView(dialogView)
+                .setPositiveButton(R.string.close, null)
+                .show();
     }
 
     private void observeData() {

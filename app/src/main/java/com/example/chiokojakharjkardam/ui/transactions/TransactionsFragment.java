@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.chiokojakharjkardam.R;
 import com.example.chiokojakharjkardam.data.database.entity.BankCard;
 import com.example.chiokojakharjkardam.data.database.entity.Category;
+import com.example.chiokojakharjkardam.data.database.entity.Tag;
 import com.example.chiokojakharjkardam.ui.adapters.TransactionAdapter;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -37,6 +38,7 @@ public class TransactionsFragment extends Fragment {
 
     private List<Category> categoriesList = new ArrayList<>();
     private List<BankCard> cardsList = new ArrayList<>();
+    private List<Tag> tagsList = new ArrayList<>();
 
     @Nullable
     @Override
@@ -115,6 +117,12 @@ public class TransactionsFragment extends Fragment {
                 cardsList = cards;
             }
         });
+
+        viewModel.getAllTags().observe(getViewLifecycleOwner(), tags -> {
+            if (tags != null) {
+                tagsList = tags;
+            }
+        });
     }
 
     private void showFilterDialog() {
@@ -123,6 +131,7 @@ public class TransactionsFragment extends Fragment {
 
         Spinner spinnerCard = dialogView.findViewById(R.id.spinner_card_filter);
         Spinner spinnerCategory = dialogView.findViewById(R.id.spinner_category_filter);
+        Spinner spinnerTag = dialogView.findViewById(R.id.spinner_tag_filter);
 
         // کارت‌ها
         List<String> cardNames = new ArrayList<>();
@@ -146,9 +155,21 @@ public class TransactionsFragment extends Fragment {
         categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(categoryAdapter);
 
+        // تگ‌ها
+        List<String> tagNames = new ArrayList<>();
+        tagNames.add("همه تگ‌ها");
+        for (Tag tag : tagsList) {
+            tagNames.add(tag.getName());
+        }
+        ArrayAdapter<String> tagAdapter = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_spinner_item, tagNames);
+        tagAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerTag.setAdapter(tagAdapter);
+
         dialogView.findViewById(R.id.btn_clear_filter).setOnClickListener(v -> {
             spinnerCard.setSelection(0);
             spinnerCategory.setSelection(0);
+            spinnerTag.setSelection(0);
         });
 
         new MaterialAlertDialogBuilder(requireContext())
@@ -169,6 +190,14 @@ public class TransactionsFragment extends Fragment {
                         viewModel.setCategoryFilter(categoriesList.get(catPos - 1).getId());
                     } else {
                         viewModel.setCategoryFilter(-1);
+                    }
+
+                    // فیلتر تگ
+                    int tagPos = spinnerTag.getSelectedItemPosition();
+                    if (tagPos > 0) {
+                        viewModel.setTagFilter(tagsList.get(tagPos - 1).getId());
+                    } else {
+                        viewModel.setTagFilter(-1);
                     }
                 })
                 .setNegativeButton(R.string.cancel, null)

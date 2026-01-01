@@ -48,6 +48,10 @@ public class TagRepository {
         return tagDao.getTagById(id);
     }
 
+    public LiveData<List<Tag>> getTagsByTransactionId(long transactionId) {
+        return tagDao.getTagsByTransactionId(transactionId);
+    }
+
     public interface OnTagInsertedListener {
         void onTagInserted(long tagId);
     }

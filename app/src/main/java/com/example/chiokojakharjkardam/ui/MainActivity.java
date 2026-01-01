@@ -2,7 +2,6 @@ package com.example.chiokojakharjkardam.ui;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 
@@ -79,6 +78,25 @@ public class MainActivity extends AppCompatActivity {
         if (navHostFragment != null) {
             navController = navHostFragment.getNavController();
             NavigationUI.setupWithNavController(bottomNav, navController);
+
+            // با کلیک روی هر تب، back stack پاک شود و به صفحه اصلی آن تب برگردد
+            bottomNav.setOnItemSelectedListener(item -> {
+                // پاک کردن back stack و navigate به destination انتخاب شده
+                navController.popBackStack(navController.getGraph().getStartDestinationId(), false);
+
+                try {
+                    navController.navigate(item.getItemId());
+                } catch (Exception e) {
+                    // اگر همین destination است، مشکلی نیست
+                }
+                return true;
+            });
+
+            // برای جلوگیری از مشکل reselect
+            bottomNav.setOnItemReselectedListener(item -> {
+                // وقتی روی همان تب کلیک می‌شود، به root آن تب برگرد
+                navController.popBackStack(item.getItemId(), false);
+            });
         }
     }
 

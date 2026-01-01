@@ -58,6 +58,15 @@ public abstract class AppDatabase extends RoomDatabase {
         return INSTANCE;
     }
 
+    public static void closeDatabase() {
+        if (INSTANCE != null) {
+            if (INSTANCE.isOpen()) {
+                INSTANCE.close();
+            }
+            INSTANCE = null;
+        }
+    }
+
     private static final RoomDatabase.Callback sRoomDatabaseCallback = new RoomDatabase.Callback() {
         @Override
         public void onCreate(@NonNull SupportSQLiteDatabase db) {

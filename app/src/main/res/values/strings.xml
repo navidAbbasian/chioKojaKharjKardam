@@ -109,4 +109,25 @@
     <string name="no">خیر</string>
     <string name="today">امروز</string>
     <string name="yesterday">دیروز</string>
+
+    <!-- Backup & Restore -->
+    <string name="backup_title">پشتیبان‌گیری</string>
+    <string name="backup_description">یک نسخه پشتیبان از اطلاعات برنامه ایجاد کنید</string>
+    <string name="backup_success">پشتیبان با موفقیت ایجاد شد</string>
+    <string name="backup_error">خطا در ایجاد پشتیبان</string>
+    <string name="restore_title">بازیابی</string>
+    <string name="restore_description">اطلاعات را از فایل پشتیبان بازیابی کنید</string>
+    <string name="restore_warning">توجه: با بازیابی، تمام اطلاعات فعلی پاک می‌شود!</string>
+    <string name="restore_success">بازیابی با موفقیت انجام شد</string>
+    <string name="restore_error">خطا در بازیابی</string>
+    <string name="restart_required">لطفاً برنامه را مجدداً راه‌اندازی کنید</string>
+    <string name="select_backup_file">انتخاب فایل پشتیبان</string>
+
+    <!-- About -->
+    <string name="about_title">درباره برنامه</string>
+    <string name="about_description">برنامه مدیریت هزینه‌های خانگی\n\nاین برنامه به شما کمک می‌کند تا هزینه‌ها و درآمدهای خانواده را به راحتی مدیریت کنید. می‌توانید برای هر عضو خانواده کارت بانکی تعریف کرده و تراکنش‌ها را ثبت کنید.</string>
+    <string name="developer_info">توسعه‌دهنده: تیم چیوکجا</string>
+    <string name="version_format">نسخه %s</string>
+    <string name="copyright_format">© %d تمامی حقوق محفوظ است</string>
+    <string name="close">بستن</string>
 </resources>

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -14,10 +15,13 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.example.chiokojakharjkardam.R;
+import com.example.chiokojakharjkardam.data.database.entity.Tag;
 import com.example.chiokojakharjkardam.data.database.entity.Transaction;
 import com.example.chiokojakharjkardam.utils.CurrencyUtils;
 import com.example.chiokojakharjkardam.utils.PersianDateUtils;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class TransactionDetailFragment extends Fragment {
@@ -30,6 +34,8 @@ public class TransactionDetailFragment extends Fragment {
     private TextView tvCategory;
     private TextView tvCard;
     private TextView tvDate;
+    private LinearLayout layoutTags;
+    private ChipGroup chipGroupTags;
     private MaterialButton btnEdit;
     private MaterialButton btnDelete;
 
@@ -65,6 +71,8 @@ public class TransactionDetailFragment extends Fragment {
         tvCategory = view.findViewById(R.id.tv_category);
         tvCard = view.findViewById(R.id.tv_card);
         tvDate = view.findViewById(R.id.tv_date);
+        layoutTags = view.findViewById(R.id.layout_tags);
+        chipGroupTags = view.findViewById(R.id.chip_group_tags);
         btnEdit = view.findViewById(R.id.btn_edit);
         btnDelete = view.findViewById(R.id.btn_delete);
     }
@@ -112,12 +120,52 @@ public class TransactionDetailFragment extends Fragment {
             tvType.setText("درآمد");
         }
 
-        tvDescription.setText(transaction.getDescription());
+        String description = transaction.getDescription();
+        tvDescription.setText(description != null && !description.isEmpty() ? description : "-");
         tvDate.setText(PersianDateUtils.formatDate(transaction.getDate()));
 
-        // TODO: Load category and card names
-        tvCategory.setText("-");
-        tvCard.setText("-");
+        // بارگذاری نام دسته‌بندی
+        viewModel.getCategoryById(transaction.getCategoryId()).observe(getViewLifecycleOwner(), category -> {
+            if (category != null) {
+                tvCategory.setText(category.getIcon() + " " + category.getName());
+            } else {
+                tvCategory.setText("-");
+            }
+        });
+
+        // بارگذاری نام کارت
+        viewModel.getCardById(transaction.getCardId()).observe(getViewLifecycleOwner(), card -> {
+            if (card != null) {
+                tvCard.setText(card.getBankName() + " - " + card.getCardNumber());
+            } else {
+                tvCard.setText("-");
+            }
+        });
+
+        // بارگذاری تگ‌ها
+        viewModel.getTagsByTransactionId(transaction.getId()).observe(getViewLifecycleOwner(), tags -> {
+            if (tags != null && !tags.isEmpty()) {
+                layoutTags.setVisibility(View.VISIBLE);
+                chipGroupTags.removeAllViews();
+                for (Tag tag : tags) {
+                    Chip chip = new Chip(requireContext());
+                    chip.setText(tag.getName());
+                    chip.setCheckable(false);
+                    chip.setClickable(false);
+                    try {
+                        chip.setChipBackgroundColorResource(android.R.color.transparent);
+                        chip.setChipStrokeColorResource(R.color.primary);
+                        chip.setChipStrokeWidth(2f);
+                        chip.setTextColor(getResources().getColor(R.color.primary, null));
+                    } catch (Exception e) {
+                        // استفاده از رنگ پیش‌فرض
+                    }
+                    chipGroupTags.addView(chip);
+                }
+            } else {
+                layoutTags.setVisibility(View.GONE);
+            }
+        });
     }
 }
 

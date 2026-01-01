@@ -165,6 +165,18 @@ public class AddTransactionFragment extends Fragment {
             }
         });
 
+        // نتیجه اعتبارسنجی موجودی
+        viewModel.getBalanceValidationResult().observe(getViewLifecycleOwner(), result -> {
+            if (result != null) {
+                if (result.success) {
+                    Toast.makeText(requireContext(), "تراکنش ذخیره شد", Toast.LENGTH_SHORT).show();
+                    Navigation.findNavController(requireView()).popBackStack();
+                } else {
+                    Toast.makeText(requireContext(), result.errorMessage, Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
         // بارگذاری دسته‌بندی‌های خرج به صورت پیش‌فرض
         viewModel.loadCategoriesByType(Category.TYPE_EXPENSE);
     }
@@ -225,9 +237,6 @@ public class AddTransactionFragment extends Fragment {
         } else {
             viewModel.insertTransaction(transaction, selectedTagIds);
         }
-
-        Toast.makeText(requireContext(), "تراکنش ذخیره شد", Toast.LENGTH_SHORT).show();
-        Navigation.findNavController(requireView()).popBackStack();
     }
 }
 

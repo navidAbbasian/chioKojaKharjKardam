@@ -8,6 +8,7 @@ import com.example.chiokojakharjkardam.data.database.AppDatabase;
 import com.example.chiokojakharjkardam.data.database.dao.BankCardDao;
 import com.example.chiokojakharjkardam.data.database.dao.TransactionDao;
 import com.example.chiokojakharjkardam.data.database.dao.TransactionTagDao;
+import com.example.chiokojakharjkardam.data.database.entity.BankCard;
 import com.example.chiokojakharjkardam.data.database.entity.Transaction;
 import com.example.chiokojakharjkardam.data.database.entity.TransactionTag;
 
@@ -30,8 +31,21 @@ public class TransactionRepository {
     /**
      * ثبت تراکنش جدید همراه با به‌روزرسانی موجودی کارت
      */
-    public void insertWithBalanceUpdate(Transaction transaction, List<Long> tagIds, OnTransactionInsertedListener listener) {
+    public void insertWithBalanceUpdate(Transaction transaction, List<Long> tagIds,
+                                         OnTransactionInsertedListener listener,
+                                         OnTransactionErrorListener errorListener) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
+            // بررسی موجودی کارت برای تراکنش‌های خرج
+            if (transaction.getType() == Transaction.TYPE_EXPENSE) {
+                BankCard card = bankCardDao.getCardByIdSync(transaction.getCardId());
+                if (card != null && card.getBalance() < transaction.getAmount()) {
+                    if (errorListener != null) {
+                        errorListener.onError("موجودی کارت کافی نیست. موجودی فعلی: " + card.getBalance());
+                    }
+                    return;
+                }
+            }
+
             // ثبت تراکنش
             long transactionId = transactionDao.insert(transaction);
 
@@ -56,16 +70,38 @@ public class TransactionRepository {
         });
     }
 
-    public void update(Transaction transaction, List<Long> tagIds) {
+    public void update(Transaction transaction, List<Long> tagIds,
+                       OnTransactionUpdatedListener listener,
+                       OnTransactionErrorListener errorListener) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             // دریافت تراکنش قبلی برای محاسبه تفاوت موجودی
             Transaction oldTransaction = transactionDao.getTransactionByIdSync(transaction.getId());
 
             if (oldTransaction != null) {
-                // برگرداندن موجودی قبلی
+                // محاسبه تغییر موجودی
                 long oldBalanceChange = oldTransaction.getType() == Transaction.TYPE_INCOME
                         ? -oldTransaction.getAmount()
                         : oldTransaction.getAmount();
+
+                // بررسی موجودی برای تراکنش جدید
+                if (transaction.getType() == Transaction.TYPE_EXPENSE) {
+                    BankCard card = bankCardDao.getCardByIdSync(transaction.getCardId());
+                    if (card != null) {
+                        // موجودی بعد از برگرداندن تراکنش قبلی
+                        long availableBalance = card.getBalance();
+                        if (oldTransaction.getCardId() == transaction.getCardId()) {
+                            availableBalance = card.getBalance() + oldBalanceChange;
+                        }
+                        if (availableBalance < transaction.getAmount()) {
+                            if (errorListener != null) {
+                                errorListener.onError("موجودی کارت کافی نیست. موجودی فعلی: " + availableBalance);
+                            }
+                            return;
+                        }
+                    }
+                }
+
+                // برگرداندن موجودی قبلی
                 bankCardDao.updateBalance(oldTransaction.getCardId(), oldBalanceChange);
             }
 
@@ -87,6 +123,10 @@ public class TransactionRepository {
                     ? transaction.getAmount()
                     : -transaction.getAmount();
             bankCardDao.updateBalance(transaction.getCardId(), newBalanceChange);
+
+            if (listener != null) {
+                listener.onTransactionUpdated();
+            }
         });
     }
 
@@ -155,8 +195,20 @@ public class TransactionRepository {
         return transactionTagDao.getTagIdsByTransaction(transactionId);
     }
 
+    public List<Long> getTransactionIdsByTag(long tagId) {
+        return transactionTagDao.getTransactionIdsByTag(tagId);
+    }
+
     public interface OnTransactionInsertedListener {
         void onTransactionInserted(long transactionId);
+    }
+
+    public interface OnTransactionUpdatedListener {
+        void onTransactionUpdated();
+    }
+
+    public interface OnTransactionErrorListener {
+        void onError(String errorMessage);
     }
 }
 

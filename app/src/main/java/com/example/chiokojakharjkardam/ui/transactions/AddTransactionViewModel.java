@@ -29,6 +29,9 @@ public class AddTransactionViewModel extends AndroidViewModel {
     private final LiveData<List<BankCard>> cards;
     private final LiveData<List<Tag>> tags;
 
+    // نتیجه اعتبارسنجی موجودی
+    private final MutableLiveData<BalanceValidationResult> balanceValidationResult = new MutableLiveData<>();
+
     public AddTransactionViewModel(@NonNull Application application) {
         super(application);
         transactionRepository = new TransactionRepository(application);
@@ -56,12 +59,37 @@ public class AddTransactionViewModel extends AndroidViewModel {
         return tags;
     }
 
+    public LiveData<BalanceValidationResult> getBalanceValidationResult() {
+        return balanceValidationResult;
+    }
+
     public void insertTransaction(Transaction transaction, List<Long> tagIds) {
-        transactionRepository.insertWithBalanceUpdate(transaction, tagIds, null);
+        transactionRepository.insertWithBalanceUpdate(transaction, tagIds, id -> {
+            balanceValidationResult.postValue(new BalanceValidationResult(true, null));
+        }, errorMessage -> {
+            balanceValidationResult.postValue(new BalanceValidationResult(false, errorMessage));
+        });
     }
 
     public void updateTransaction(Transaction transaction, List<Long> tagIds) {
-        transactionRepository.update(transaction, tagIds);
+        transactionRepository.update(transaction, tagIds, () -> {
+            balanceValidationResult.postValue(new BalanceValidationResult(true, null));
+        }, errorMessage -> {
+            balanceValidationResult.postValue(new BalanceValidationResult(false, errorMessage));
+        });
+    }
+
+    /**
+     * کلاس برای نگهداری نتیجه اعتبارسنجی موجودی
+     */
+    public static class BalanceValidationResult {
+        public final boolean success;
+        public final String errorMessage;
+
+        public BalanceValidationResult(boolean success, String errorMessage) {
+            this.success = success;
+            this.errorMessage = errorMessage;
+        }
     }
 }
 
