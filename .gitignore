@@ -10,7 +10,6 @@ local.properties
 .idea/
 
 # Android Studio specific
-captures/
 .externalNativeBuild/
 .cxx/
 
@@ -50,9 +49,6 @@ gradle-wrapper.jar
 
 # Android navigation editor
 .navigation/
-
-# Captures (Android Studio)
-captures/
 
 # Android Studio profiler
 *.hprof
