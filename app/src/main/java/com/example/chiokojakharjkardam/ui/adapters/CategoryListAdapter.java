@@ -1,0 +1,98 @@
+package com.example.chiokojakharjkardam.ui.adapters;
+
+import android.graphics.Color;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.chiokojakharjkardam.R;
+import com.example.chiokojakharjkardam.data.database.entity.Category;
+import com.google.android.material.card.MaterialCardView;
+
+public class CategoryListAdapter extends ListAdapter<Category, CategoryListAdapter.CategoryViewHolder> {
+
+    private final OnCategoryClickListener listener;
+
+    public interface OnCategoryClickListener {
+        void onCategoryClick(Category category);
+    }
+
+    public CategoryListAdapter(OnCategoryClickListener listener) {
+        super(DIFF_CALLBACK);
+        this.listener = listener;
+    }
+
+    private static final DiffUtil.ItemCallback<Category> DIFF_CALLBACK = new DiffUtil.ItemCallback<Category>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull Category oldItem, @NonNull Category newItem) {
+            return oldItem.getId() == newItem.getId();
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull Category oldItem, @NonNull Category newItem) {
+            return oldItem.getName().equals(newItem.getName())
+                    && oldItem.getIcon().equals(newItem.getIcon());
+        }
+    };
+
+    @NonNull
+    @Override
+    public CategoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_category_list, parent, false);
+        return new CategoryViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
+        holder.bind(getItem(position));
+    }
+
+    class CategoryViewHolder extends RecyclerView.ViewHolder {
+        private final MaterialCardView cardView;
+        private final TextView tvIcon;
+        private final TextView tvName;
+        private final TextView tvType;
+
+        CategoryViewHolder(@NonNull View itemView) {
+            super(itemView);
+            cardView = itemView.findViewById(R.id.card_category);
+            tvIcon = itemView.findViewById(R.id.tv_icon);
+            tvName = itemView.findViewById(R.id.tv_name);
+            tvType = itemView.findViewById(R.id.tv_type);
+
+            itemView.setOnClickListener(v -> {
+                int position = getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION && listener != null) {
+                    listener.onCategoryClick(getItem(position));
+                }
+            });
+        }
+
+        void bind(Category category) {
+            tvIcon.setText(category.getIcon());
+            tvName.setText(category.getName());
+
+            String typeText = "";
+            switch (category.getType()) {
+                case Category.TYPE_EXPENSE:
+                    typeText = "خرج";
+                    break;
+                case Category.TYPE_INCOME:
+                    typeText = "درآمد";
+                    break;
+                case Category.TYPE_BOTH:
+                    typeText = "همه";
+                    break;
+            }
+            tvType.setText(typeText);
+        }
+    }
+}
+

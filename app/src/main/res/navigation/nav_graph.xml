@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <!-- داشبورد -->
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.chiokojakharjkardam.ui.home.HomeFragment"
+        android:label="@string/nav_home"
+        tools:layout="@layout/fragment_home">
+
+        <action
+            android:id="@+id/action_home_to_addTransaction"
+            app:destination="@id/addTransactionFragment" />
+    </fragment>
+
+    <!-- تراکنش‌ها -->
+    <fragment
+        android:id="@+id/transactionsFragment"
+        android:name="com.example.chiokojakharjkardam.ui.transactions.TransactionsFragment"
+        android:label="@string/nav_transactions"
+        tools:layout="@layout/fragment_transactions">
+
+        <action
+            android:id="@+id/action_transactions_to_addTransaction"
+            app:destination="@id/addTransactionFragment" />
+
+        <action
+            android:id="@+id/action_transactions_to_transactionDetail"
+            app:destination="@id/transactionDetailFragment" />
+    </fragment>
+
+    <!-- کارت‌ها -->
+    <fragment
+        android:id="@+id/cardsFragment"
+        android:name="com.example.chiokojakharjkardam.ui.cards.CardsFragment"
+        android:label="@string/nav_cards"
+        tools:layout="@layout/fragment_cards">
+
+        <action
+            android:id="@+id/action_cards_to_addCard"
+            app:destination="@id/addCardFragment" />
+
+        <action
+            android:id="@+id/action_cards_to_transfer"
+            app:destination="@id/transferFragment" />
+    </fragment>
+
+    <!-- قبوض و اقساط -->
+    <fragment
+        android:id="@+id/billsFragment"
+        android:name="com.example.chiokojakharjkardam.ui.bills.BillsFragment"
+        android:label="@string/nav_bills"
+        tools:layout="@layout/fragment_bills">
+
+        <action
+            android:id="@+id/action_bills_to_addBill"
+            app:destination="@id/addBillFragment" />
+    </fragment>
+
+    <!-- تنظیمات -->
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.chiokojakharjkardam.ui.settings.SettingsFragment"
+        android:label="@string/nav_settings"
+        tools:layout="@layout/fragment_settings">
+
+        <action
+            android:id="@+id/action_settings_to_members"
+            app:destination="@id/membersFragment" />
+
+        <action
+            android:id="@+id/action_settings_to_categories"
+            app:destination="@id/categoriesFragment" />
+
+        <action
+            android:id="@+id/action_settings_to_tags"
+            app:destination="@id/tagsFragment" />
+    </fragment>
+
+    <!-- افزودن تراکنش -->
+    <fragment
+        android:id="@+id/addTransactionFragment"
+        android:name="com.example.chiokojakharjkardam.ui.transactions.AddTransactionFragment"
+        android:label="@string/add_transaction"
+        tools:layout="@layout/fragment_add_transaction">
+
+        <argument
+            android:name="transactionId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+    </fragment>
+
+    <!-- جزئیات تراکنش -->
+    <fragment
+        android:id="@+id/transactionDetailFragment"
+        android:name="com.example.chiokojakharjkardam.ui.transactions.TransactionDetailFragment"
+        android:label="@string/transaction_detail"
+        tools:layout="@layout/fragment_transaction_detail">
+
+        <argument
+            android:name="transactionId"
+            app:argType="long" />
+    </fragment>
+
+    <!-- افزودن کارت -->
+    <fragment
+        android:id="@+id/addCardFragment"
+        android:name="com.example.chiokojakharjkardam.ui.cards.AddCardFragment"
+        android:label="@string/add_card"
+        tools:layout="@layout/fragment_add_card">
+
+        <argument
+            android:name="cardId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+    </fragment>
+
+    <!-- انتقال موجودی -->
+    <fragment
+        android:id="@+id/transferFragment"
+        android:name="com.example.chiokojakharjkardam.ui.cards.TransferFragment"
+        android:label="@string/transfer_title"
+        tools:layout="@layout/fragment_transfer" />
+
+    <!-- افزودن قبض -->
+    <fragment
+        android:id="@+id/addBillFragment"
+        android:name="com.example.chiokojakharjkardam.ui.bills.AddBillFragment"
+        android:label="@string/add_bill"
+        tools:layout="@layout/fragment_add_bill">
+
+        <argument
+            android:name="billId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+    </fragment>
+
+    <!-- مدیریت اعضا -->
+    <fragment
+        android:id="@+id/membersFragment"
+        android:name="com.example.chiokojakharjkardam.ui.members.MembersFragment"
+        android:label="@string/members"
+        tools:layout="@layout/fragment_members">
+
+        <action
+            android:id="@+id/action_members_to_addMember"
+            app:destination="@id/addMemberFragment" />
+    </fragment>
+
+    <!-- افزودن عضو -->
+    <fragment
+        android:id="@+id/addMemberFragment"
+        android:name="com.example.chiokojakharjkardam.ui.members.AddMemberFragment"
+        android:label="@string/add_member"
+        tools:layout="@layout/fragment_add_member">
+
+        <argument
+            android:name="memberId"
+            app:argType="long"
+            android:defaultValue="-1L" />
+    </fragment>
+
+    <!-- دسته‌بندی‌ها -->
+    <fragment
+        android:id="@+id/categoriesFragment"
+        android:name="com.example.chiokojakharjkardam.ui.categories.CategoriesFragment"
+        android:label="@string/categories"
+        tools:layout="@layout/fragment_categories" />
+
+    <!-- تگ‌ها -->
+    <fragment
+        android:id="@+id/tagsFragment"
+        android:name="com.example.chiokojakharjkardam.ui.tags.TagsFragment"
+        android:label="@string/tags"
+        tools:layout="@layout/fragment_tags" />
+
+</navigation>
+

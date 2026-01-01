@@ -1,0 +1,112 @@
+<resources>
+    <string name="app_name">چیو کجا خرج کردم</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">داشبورد</string>
+    <string name="nav_transactions">تراکنش‌ها</string>
+    <string name="nav_cards">کارت‌ها</string>
+    <string name="nav_bills">قبوض</string>
+    <string name="nav_settings">تنظیمات</string>
+
+    <!-- Home -->
+    <string name="total_balance">موجودی کل</string>
+    <string name="this_month_expense">خرج این ماه</string>
+    <string name="this_month_income">درآمد این ماه</string>
+    <string name="recent_transactions">تراکنش‌های اخیر</string>
+    <string name="see_all">مشاهده همه</string>
+    <string name="no_transactions">هنوز تراکنشی ثبت نشده</string>
+    <string name="add_first_transaction">اولین تراکنش خود را ثبت کنید</string>
+
+    <!-- Transactions -->
+    <string name="add_transaction">ثبت تراکنش</string>
+    <string name="edit_transaction">ویرایش تراکنش</string>
+    <string name="transaction_detail">جزئیات تراکنش</string>
+    <string name="expense">خرج</string>
+    <string name="income">درآمد</string>
+    <string name="amount">مبلغ</string>
+    <string name="amount_hint">مبلغ (تومان)</string>
+    <string name="description">توضیحات</string>
+    <string name="description_hint">توضیحات (اختیاری)</string>
+    <string name="select_category">انتخاب دسته‌بندی</string>
+    <string name="select_card">انتخاب کارت</string>
+    <string name="select_tags">انتخاب تگ‌ها</string>
+    <string name="select_date">انتخاب تاریخ</string>
+    <string name="save">ذخیره</string>
+    <string name="cancel">لغو</string>
+    <string name="delete">حذف</string>
+    <string name="edit">ویرایش</string>
+
+    <!-- Cards -->
+    <string name="add_card">افزودن کارت</string>
+    <string name="edit_card">ویرایش کارت</string>
+    <string name="bank_name">نام بانک</string>
+    <string name="card_number">شماره کارت</string>
+    <string name="card_number_hint">۴ رقم آخر کارت</string>
+    <string name="card_holder">نام صاحب کارت</string>
+    <string name="initial_balance">موجودی اولیه</string>
+    <string name="select_member">انتخاب عضو</string>
+    <string name="select_color">انتخاب رنگ</string>
+    <string name="no_cards">هنوز کارتی ثبت نشده</string>
+    <string name="add_first_card">اولین کارت بانکی خود را اضافه کنید</string>
+
+    <!-- Transfer -->
+    <string name="transfer_title">انتقال موجودی</string>
+    <string name="from_card">از کارت</string>
+    <string name="to_card">به کارت</string>
+    <string name="transfer_amount">مبلغ انتقال</string>
+    <string name="transfer_success">انتقال با موفقیت انجام شد</string>
+
+    <!-- Members -->
+    <string name="members">اعضای خانواده</string>
+    <string name="add_member">افزودن عضو</string>
+    <string name="edit_member">ویرایش عضو</string>
+    <string name="member_name">نام عضو</string>
+    <string name="owner_badge">صاحب برنامه</string>
+
+    <!-- Bills -->
+    <string name="add_bill">افزودن قبض</string>
+    <string name="edit_bill">ویرایش قبض</string>
+    <string name="bill_title">عنوان</string>
+    <string name="bill_title_hint">مثلا: قبض برق</string>
+    <string name="due_date">تاریخ سررسید</string>
+    <string name="is_recurring">تکراری</string>
+    <string name="recurring_monthly">ماهانه</string>
+    <string name="recurring_yearly">سالانه</string>
+    <string name="notify_before">یادآوری</string>
+    <string name="notify_days_before">روز قبل از سررسید</string>
+    <string name="mark_as_paid">پرداخت شد</string>
+    <string name="paid">پرداخت شده</string>
+    <string name="unpaid">پرداخت نشده</string>
+    <string name="no_bills">هنوز قبضی ثبت نشده</string>
+    <string name="add_first_bill">قبض‌ها و اقساط خود را اضافه کنید</string>
+
+    <!-- Categories -->
+    <string name="categories">دسته‌بندی‌ها</string>
+    <string name="add_category">افزودن دسته‌بندی</string>
+    <string name="category_name">نام دسته‌بندی</string>
+
+    <!-- Tags -->
+    <string name="tags">تگ‌ها</string>
+    <string name="add_tag">افزودن تگ</string>
+    <string name="tag_name">نام تگ</string>
+    <string name="no_tags">هنوز تگی ثبت نشده</string>
+
+    <!-- Settings -->
+    <string name="manage_family">مدیریت خانواده</string>
+    <string name="manage_categories">مدیریت دسته‌بندی‌ها</string>
+    <string name="manage_tags">مدیریت تگ‌ها</string>
+    <string name="backup">پشتیبان‌گیری</string>
+    <string name="restore">بازیابی</string>
+    <string name="about">درباره برنامه</string>
+
+    <!-- Common -->
+    <string name="toman">تومان</string>
+    <string name="loading">در حال بارگذاری…</string>
+    <string name="error">خطا</string>
+    <string name="success">موفق</string>
+    <string name="confirm_delete">آیا از حذف اطمینان دارید؟</string>
+    <string name="yes">بله</string>
+    <string name="no">خیر</string>
+    <string name="today">امروز</string>
+    <string name="yesterday">دیروز</string>
+</resources>
