@@ -3,6 +3,7 @@ package com.example.chiokojakharjkardam;
 import android.app.Application;
 
 import com.example.chiokojakharjkardam.utils.NotificationHelper;
+import com.example.chiokojakharjkardam.utils.ThemeManager;
 
 public class App extends Application {
 
@@ -12,6 +13,10 @@ public class App extends Application {
 
         // ایجاد کانال اعلان
         NotificationHelper.createNotificationChannel(this);
+
+        // اعمال تم ذخیره شده
+        ThemeManager themeManager = new ThemeManager(this);
+        themeManager.applySavedTheme();
     }
 }
 

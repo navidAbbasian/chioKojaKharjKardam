@@ -23,8 +23,10 @@ import androidx.navigation.Navigation;
 
 import com.example.chiokojakharjkardam.R;
 import com.example.chiokojakharjkardam.utils.BackupManager;
+import com.example.chiokojakharjkardam.utils.ThemeManager;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 import java.util.Calendar;
 
@@ -32,6 +34,10 @@ public class SettingsFragment extends Fragment {
 
     private SettingsViewModel viewModel;
     private TextView tvFamilyName;
+    private ThemeManager themeManager;
+    private MaterialSwitch switchTheme;
+    private TextView tvCurrentTheme;
+    private TextView tvThemeIcon;
 
     // برای انتخاب محل ذخیره پشتیبان
     private final ActivityResultLauncher<Intent> createBackupLauncher = registerForActivityResult(
@@ -79,6 +85,15 @@ public class SettingsFragment extends Fragment {
 
     private void initViews(View view) {
         tvFamilyName = view.findViewById(R.id.tv_family_name);
+
+        // تنظیمات تم
+        themeManager = new ThemeManager(requireContext());
+        switchTheme = view.findViewById(R.id.switch_theme);
+        tvCurrentTheme = view.findViewById(R.id.tv_current_theme);
+        tvThemeIcon = view.findViewById(R.id.tv_theme_icon);
+
+        // تنظیم وضعیت اولیه سوییچ تم
+        updateThemeUI(themeManager.isDarkMode());
     }
 
     private void setupListeners(View view) {
@@ -105,6 +120,12 @@ public class SettingsFragment extends Fragment {
 
         MaterialCardView cardAbout = view.findViewById(R.id.card_about);
         cardAbout.setOnClickListener(v -> showAboutDialog());
+
+        // تنظیم listener برای سوییچ تم
+        switchTheme.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            themeManager.setDarkMode(isChecked);
+            updateThemeUI(isChecked);
+        });
     }
 
     private void showBackupDialog() {
@@ -213,6 +234,17 @@ public class SettingsFragment extends Fragment {
                 .setView(dialogView)
                 .setPositiveButton(R.string.close, null)
                 .show();
+    }
+
+    private void updateThemeUI(boolean isDarkMode) {
+        switchTheme.setChecked(isDarkMode);
+        if (isDarkMode) {
+            tvCurrentTheme.setText(R.string.dark_mode);
+            tvThemeIcon.setText("🌙");
+        } else {
+            tvCurrentTheme.setText(R.string.light_mode);
+            tvThemeIcon.setText("☀️");
+        }
     }
 
     private void observeData() {

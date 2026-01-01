@@ -98,6 +98,9 @@
     <string name="backup">پشتیبان‌گیری</string>
     <string name="restore">بازیابی</string>
     <string name="about">درباره برنامه</string>
+    <string name="theme_mode">تم برنامه</string>
+    <string name="dark_mode">حالت تاریک</string>
+    <string name="light_mode">حالت روشن</string>
 
     <!-- Common -->
     <string name="toman">تومان</string>
