@@ -22,6 +22,7 @@ import com.example.chiokojakharjkardam.data.database.entity.Category;
 import com.example.chiokojakharjkardam.data.database.entity.Tag;
 import com.example.chiokojakharjkardam.data.database.entity.Transaction;
 import com.example.chiokojakharjkardam.ui.adapters.CategoryAdapter;
+import com.example.chiokojakharjkardam.ui.components.PersianDatePickerDialog;
 import com.example.chiokojakharjkardam.utils.CurrencyUtils;
 import com.example.chiokojakharjkardam.utils.PersianDateUtils;
 import com.google.android.material.button.MaterialButton;
@@ -169,9 +170,15 @@ public class AddTransactionFragment extends Fragment {
     }
 
     private void showDatePicker() {
-        // TODO: نمایش DatePicker شمسی
-        // فعلاً از تاریخ امروز استفاده می‌کنیم
-        Toast.makeText(requireContext(), "انتخاب تاریخ شمسی", Toast.LENGTH_SHORT).show();
+        PersianDatePickerDialog dialog = PersianDatePickerDialog.fromTimestamp(
+                requireContext(),
+                selectedDate,
+                (year, month, day, timestamp) -> {
+                    selectedDate = timestamp;
+                    updateDateDisplay();
+                }
+        );
+        dialog.show();
     }
 
     private void updateDateDisplay() {

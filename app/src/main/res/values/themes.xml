@@ -15,5 +15,13 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <!-- RTL support -->
         <item name="android:supportsRtl">true</item>
+        <!-- Edge to edge with notch support -->
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="27">shortEdges</item>
+    </style>
+
+    <!-- NumberPicker Style -->
+    <style name="NumberPickerTheme">
+        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
+        <item name="android:textSize">16sp</item>
     </style>
 </resources>

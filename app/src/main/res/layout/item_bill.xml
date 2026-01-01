@@ -70,13 +70,29 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_pay"
-                style="@style/Widget.Material3.Button.TonalButton"
+                style="@style/Widget.Material3.Button"
                 android:layout_width="wrap_content"
                 android:layout_height="32dp"
                 android:layout_marginTop="4dp"
                 android:text="@string/mark_as_paid"
                 android:textSize="10sp"
+                android:textColor="@color/white"
+                app:backgroundTint="@color/secondary"
                 app:cornerRadius="8dp" />
+
+            <TextView
+                android:id="@+id/tv_paid_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_paid_badge"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:text="@string/paid"
+                android:textColor="@color/on_paid_badge"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
 
         </LinearLayout>
 

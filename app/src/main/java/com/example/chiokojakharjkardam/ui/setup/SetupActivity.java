@@ -9,6 +9,10 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.example.chiokojakharjkardam.R;
 import com.example.chiokojakharjkardam.data.database.AppDatabase;
@@ -34,13 +38,29 @@ public class SetupActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // فعال‌سازی edge-to-edge برای پشتیبانی از notch
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
         setContentView(R.layout.activity_setup);
+
+        // تنظیم padding برای notch
+        setupEdgeToEdge();
 
         familyRepository = new FamilyRepository(getApplication());
         memberRepository = new MemberRepository(getApplication());
 
         initViews();
         setupListeners();
+    }
+
+    private void setupEdgeToEdge() {
+        View rootView = findViewById(android.R.id.content);
+        ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(insets.left, insets.top, insets.right, insets.bottom);
+            return WindowInsetsCompat.CONSUMED;
+        });
     }
 
     private void initViews() {

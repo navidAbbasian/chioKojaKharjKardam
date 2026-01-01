@@ -25,7 +25,7 @@
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="?attr/colorPrimaryContainer">
+                app:cardBackgroundColor="@color/dashboard_card_bg">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -38,7 +38,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/total_balance"
                         android:textSize="14sp"
-                        android:textColor="?attr/colorOnPrimaryContainer" />
+                        android:textColor="@color/on_dashboard_card" />
 
                     <TextView
                         android:id="@+id/tv_total_balance"
@@ -48,7 +48,7 @@
                         android:text="۰ تومان"
                         android:textSize="28sp"
                         android:textStyle="bold"
-                        android:textColor="?attr/colorOnPrimaryContainer" />
+                        android:textColor="@color/on_dashboard_card" />
 
                     <!-- خرج و درآمد این ماه -->
                     <LinearLayout
@@ -68,7 +68,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/this_month_expense"
                                 android:textSize="12sp"
-                                android:textColor="?attr/colorOnPrimaryContainer" />
+                                android:textColor="@color/on_dashboard_card" />
 
                             <TextView
                                 android:id="@+id/tv_month_expense"
@@ -77,7 +77,7 @@
                                 android:text="۰ تومان"
                                 android:textSize="16sp"
                                 android:textStyle="bold"
-                                android:textColor="#F44336" />
+                                android:textColor="#FFCDD2" />
 
                         </LinearLayout>
 
@@ -92,7 +92,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/this_month_income"
                                 android:textSize="12sp"
-                                android:textColor="?attr/colorOnPrimaryContainer" />
+                                android:textColor="@color/on_dashboard_card" />
 
                             <TextView
                                 android:id="@+id/tv_month_income"
@@ -101,7 +101,7 @@
                                 android:text="۰ تومان"
                                 android:textSize="16sp"
                                 android:textStyle="bold"
-                                android:textColor="#4CAF50" />
+                                android:textColor="#C8E6C9" />
 
                         </LinearLayout>
 

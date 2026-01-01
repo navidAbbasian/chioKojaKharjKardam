@@ -17,6 +17,7 @@ import androidx.navigation.Navigation;
 
 import com.example.chiokojakharjkardam.R;
 import com.example.chiokojakharjkardam.data.database.entity.Bill;
+import com.example.chiokojakharjkardam.ui.components.PersianDatePickerDialog;
 import com.example.chiokojakharjkardam.utils.CurrencyUtils;
 import com.example.chiokojakharjkardam.utils.PersianDateUtils;
 import com.google.android.material.button.MaterialButton;
@@ -39,6 +40,8 @@ public class AddBillFragment extends Fragment {
 
     private long editBillId = -1;
     private long selectedDueDate = System.currentTimeMillis();
+    private Bill existingBill = null; // برای حفظ اطلاعات قبض در حالت ویرایش
+    private boolean isDataLoaded = false; // جلوگیری از لود چندباره
 
     @Nullable
     @Override
@@ -88,10 +91,7 @@ public class AddBillFragment extends Fragment {
     }
 
     private void setupListeners() {
-        etDueDate.setOnClickListener(v -> {
-            // TODO: نمایش DatePicker شمسی
-            Toast.makeText(requireContext(), "انتخاب تاریخ شمسی", Toast.LENGTH_SHORT).show();
-        });
+        etDueDate.setOnClickListener(v -> showDatePicker());
 
         switchRecurring.setOnCheckedChangeListener((buttonView, isChecked) -> {
             spinnerRecurringType.setVisibility(isChecked ? View.VISIBLE : View.GONE);
@@ -109,13 +109,27 @@ public class AddBillFragment extends Fragment {
         btnSave.setOnClickListener(v -> saveBill());
     }
 
+    private void showDatePicker() {
+        PersianDatePickerDialog dialog = PersianDatePickerDialog.fromTimestamp(
+                requireContext(),
+                selectedDueDate,
+                (year, month, day, timestamp) -> {
+                    selectedDueDate = timestamp;
+                    updateDateDisplay();
+                }
+        );
+        dialog.show();
+    }
+
     private void updateDateDisplay() {
         etDueDate.setText(PersianDateUtils.formatDate(selectedDueDate));
     }
 
     private void loadBill() {
         viewModel.getBillById(editBillId).observe(getViewLifecycleOwner(), bill -> {
-            if (bill != null) {
+            if (bill != null && !isDataLoaded) {
+                isDataLoaded = true;
+                existingBill = bill; // ذخیره قبض برای استفاده در هنگام ذخیره
                 etTitle.setText(bill.getTitle());
                 etAmount.setText(String.valueOf(bill.getAmount()));
                 selectedDueDate = bill.getDueDate();
@@ -125,7 +139,9 @@ public class AddBillFragment extends Fragment {
                     spinnerRecurringType.setVisibility(View.VISIBLE);
                     spinnerRecurringType.setSelection(bill.getRecurringType() == Bill.RECURRING_YEARLY ? 1 : 0);
                 }
-                sliderNotify.setValue(bill.getNotifyBefore());
+                // اطمینان از محدوده مجاز slider
+                int notifyValue = Math.max(0, Math.min(7, bill.getNotifyBefore()));
+                sliderNotify.setValue(notifyValue);
             }
         });
     }
@@ -155,6 +171,12 @@ public class AddBillFragment extends Fragment {
 
         if (editBillId != -1) {
             bill.setId(editBillId);
+            // حفظ اطلاعات قبلی که نباید تغییر کنند
+            if (existingBill != null) {
+                bill.setPaid(existingBill.isPaid());
+                bill.setCreatedAt(existingBill.getCreatedAt());
+                bill.setCardId(existingBill.getCardId());
+            }
             viewModel.updateBill(bill);
         } else {
             viewModel.insertBill(bill);

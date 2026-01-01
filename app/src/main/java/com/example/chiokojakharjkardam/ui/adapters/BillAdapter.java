@@ -69,6 +69,7 @@ public class BillAdapter extends ListAdapter<Bill, BillAdapter.BillViewHolder> {
         private final TextView tvAmount;
         private final TextView tvDueDate;
         private final MaterialButton btnPay;
+        private final TextView tvPaidBadge;
 
         BillViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -77,6 +78,7 @@ public class BillAdapter extends ListAdapter<Bill, BillAdapter.BillViewHolder> {
             tvAmount = itemView.findViewById(R.id.tv_amount);
             tvDueDate = itemView.findViewById(R.id.tv_due_date);
             btnPay = itemView.findViewById(R.id.btn_pay);
+            tvPaidBadge = itemView.findViewById(R.id.tv_paid_badge);
 
             itemView.setOnClickListener(v -> {
                 int position = getAdapterPosition();
@@ -100,8 +102,10 @@ public class BillAdapter extends ListAdapter<Bill, BillAdapter.BillViewHolder> {
 
             if (bill.isPaid()) {
                 btnPay.setVisibility(View.GONE);
+                tvPaidBadge.setVisibility(View.VISIBLE);
             } else {
                 btnPay.setVisibility(View.VISIBLE);
+                tvPaidBadge.setVisibility(View.GONE);
             }
         }
     }

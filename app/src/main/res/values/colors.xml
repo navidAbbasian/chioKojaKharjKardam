@@ -25,6 +25,14 @@
     <color name="expense_color">#F44336</color>
     <color name="income_color">#4CAF50</color>
 
+    <!-- Dashboard Card Colors -->
+    <color name="dashboard_card_bg">#1A237E</color>
+    <color name="on_dashboard_card">#FFFFFF</color>
+
+    <!-- Bill Paid Badge -->
+    <color name="paid_badge_bg">#388E3C</color>
+    <color name="on_paid_badge">#FFFFFF</color>
+
     <!-- Legacy colors -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>

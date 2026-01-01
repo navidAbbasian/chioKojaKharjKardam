@@ -2,9 +2,15 @@ package com.example.chiokojakharjkardam.ui;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
@@ -29,9 +35,34 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        // فعال‌سازی edge-to-edge برای پشتیبانی از notch
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+
         setContentView(R.layout.activity_main);
 
+        // تنظیم padding برای notch
+        setupEdgeToEdge();
+
         setupNavigation();
+    }
+
+    private void setupEdgeToEdge() {
+        View rootView = findViewById(R.id.nav_host_fragment);
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+
+        ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            // اضافه کردن padding بالا برای notch
+            v.setPadding(v.getPaddingLeft(), insets.top, v.getPaddingRight(), v.getPaddingBottom());
+            return WindowInsetsCompat.CONSUMED;
+        });
+
+        ViewCompat.setOnApplyWindowInsetsListener(bottomNav, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+            // اضافه کردن padding پایین برای navigation bar
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), insets.bottom);
+            return WindowInsetsCompat.CONSUMED;
+        });
     }
 
     private boolean isFirstRun() {
