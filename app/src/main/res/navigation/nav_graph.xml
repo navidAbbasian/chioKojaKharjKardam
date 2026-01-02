@@ -79,6 +79,10 @@
         <action
             android:id="@+id/action_settings_to_tags"
             app:destination="@id/tagsFragment" />
+
+        <action
+            android:id="@+id/action_settings_to_reports"
+            app:destination="@id/reportsFragment" />
     </fragment>
 
     <!-- افزودن تراکنش -->
@@ -177,6 +181,13 @@
         android:name="com.example.chiokojakharjkardam.ui.tags.TagsFragment"
         android:label="@string/tags"
         tools:layout="@layout/fragment_tags" />
+
+    <!-- گزارش‌ها -->
+    <fragment
+        android:id="@+id/reportsFragment"
+        android:name="com.example.chiokojakharjkardam.ui.reports.ReportsFragment"
+        android:label="@string/reports"
+        tools:layout="@layout/fragment_reports" />
 
 </navigation>
 

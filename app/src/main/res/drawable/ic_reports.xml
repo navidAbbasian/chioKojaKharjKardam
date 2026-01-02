@@ -11,11 +11,9 @@
         android:pathData="M7,12h2v5H7z"/>
     <path
         android:fillColor="@android:color/white"
-        android:pathData="M15,7h2v10h-2z"/>
+        android:pathData="M11,7h2v10h-2z"/>
     <path
         android:fillColor="@android:color/white"
-        android:pathData="M11,14h2v3h-2z"/>
-    <path
-        android:fillColor="@android:color/white"
-        android:pathData="M11,10h2v2h-2z"/>
+        android:pathData="M15,10h2v7h-2z"/>
 </vector>
+

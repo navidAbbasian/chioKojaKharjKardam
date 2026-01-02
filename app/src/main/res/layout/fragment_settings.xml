@@ -34,11 +34,12 @@
                     android:padding="16dp"
                     android:gravity="center_vertical">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="👨‍👩‍👧‍👦"
-                        android:textSize="24sp" />
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@drawable/ic_group"
+                        android:contentDescription="@null"
+                        app:tint="?attr/colorPrimary" />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -69,6 +70,7 @@
                         android:layout_height="24dp"
                         android:src="@drawable/ic_arrow_left"
                         android:rotation="180"
+                        android:contentDescription="@null"
                         app:tint="?attr/colorOnSurfaceVariant" />
 
                 </LinearLayout>
@@ -92,11 +94,12 @@
                     android:padding="16dp"
                     android:gravity="center_vertical">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="📁"
-                        android:textSize="24sp" />
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@drawable/ic_folder"
+                        android:contentDescription="@null"
+                        app:tint="?attr/colorPrimary" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -112,6 +115,7 @@
                         android:layout_height="24dp"
                         android:src="@drawable/ic_arrow_left"
                         android:rotation="180"
+                        android:contentDescription="@null"
                         app:tint="?attr/colorOnSurfaceVariant" />
 
                 </LinearLayout>
@@ -135,11 +139,12 @@
                     android:padding="16dp"
                     android:gravity="center_vertical">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="🏷️"
-                        android:textSize="24sp" />
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@drawable/ic_tag"
+                        android:contentDescription="@null"
+                        app:tint="?attr/colorPrimary" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -155,6 +160,67 @@
                         android:layout_height="24dp"
                         android:src="@drawable/ic_arrow_left"
                         android:rotation="180"
+                        android:contentDescription="@null"
+                        app:tint="?attr/colorOnSurfaceVariant" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- گزارش‌ها -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_reports"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                style="?attr/materialCardViewFilledStyle">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@drawable/ic_reports"
+                        android:contentDescription="@null"
+                        app:tint="?attr/colorPrimary" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/reports"
+                            android:textSize="16sp"
+                            android:textColor="?attr/colorOnSurface" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/reports_description"
+                            android:textSize="14sp"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_arrow_left"
+                        android:rotation="180"
+                        android:contentDescription="@null"
                         app:tint="?attr/colorOnSurfaceVariant" />
 
                 </LinearLayout>
@@ -178,12 +244,12 @@
                     android:padding="16dp"
                     android:gravity="center_vertical">
 
-                    <TextView
-                        android:id="@+id/tv_theme_icon"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="🌙"
-                        android:textSize="24sp" />
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@drawable/ic_theme"
+                        android:contentDescription="@null"
+                        app:tint="?attr/colorPrimary" />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -242,11 +308,12 @@
                     android:padding="16dp"
                     android:gravity="center_vertical">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="💾"
-                        android:textSize="24sp" />
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@drawable/ic_backup"
+                        android:contentDescription="@null"
+                        app:tint="?attr/colorPrimary" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -262,6 +329,7 @@
                         android:layout_height="24dp"
                         android:src="@drawable/ic_arrow_left"
                         android:rotation="180"
+                        android:contentDescription="@null"
                         app:tint="?attr/colorOnSurfaceVariant" />
 
                 </LinearLayout>
@@ -285,11 +353,12 @@
                     android:padding="16dp"
                     android:gravity="center_vertical">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="📥"
-                        android:textSize="24sp" />
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@drawable/ic_restore"
+                        android:contentDescription="@null"
+                        app:tint="?attr/colorPrimary" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -305,6 +374,7 @@
                         android:layout_height="24dp"
                         android:src="@drawable/ic_arrow_left"
                         android:rotation="180"
+                        android:contentDescription="@null"
                         app:tint="?attr/colorOnSurfaceVariant" />
 
                 </LinearLayout>
@@ -328,11 +398,12 @@
                     android:padding="16dp"
                     android:gravity="center_vertical">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="ℹ️"
-                        android:textSize="24sp" />
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@drawable/ic_info"
+                        android:contentDescription="@null"
+                        app:tint="?attr/colorPrimary" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -348,6 +419,7 @@
                         android:layout_height="24dp"
                         android:src="@drawable/ic_arrow_left"
                         android:rotation="180"
+                        android:contentDescription="@null"
                         app:tint="?attr/colorOnSurfaceVariant" />
 
                 </LinearLayout>

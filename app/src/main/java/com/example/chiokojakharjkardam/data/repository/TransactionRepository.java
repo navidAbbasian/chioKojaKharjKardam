@@ -9,6 +9,9 @@ import com.example.chiokojakharjkardam.data.database.dao.BankCardDao;
 import com.example.chiokojakharjkardam.data.database.dao.TransactionDao;
 import com.example.chiokojakharjkardam.data.database.dao.TransactionTagDao;
 import com.example.chiokojakharjkardam.data.database.entity.BankCard;
+import com.example.chiokojakharjkardam.data.database.entity.CategoryReport;
+import com.example.chiokojakharjkardam.data.database.entity.CombinedReport;
+import com.example.chiokojakharjkardam.data.database.entity.TagReport;
 import com.example.chiokojakharjkardam.data.database.entity.Transaction;
 import com.example.chiokojakharjkardam.data.database.entity.TransactionTag;
 
@@ -201,6 +204,64 @@ public class TransactionRepository {
 
     public LiveData<List<TransactionTag>> getAllTransactionTags() {
         return transactionTagDao.getAllTransactionTags();
+    }
+
+    // ==================== گزارش‌گیری ====================
+
+    /**
+     * گزارش هزینه‌ها بر اساس دسته‌بندی
+     */
+    public LiveData<List<CategoryReport>> getExpenseReportByCategory(long startDate, long endDate) {
+        return transactionDao.getExpenseReportByCategory(startDate, endDate);
+    }
+
+    /**
+     * گزارش درآمدها بر اساس دسته‌بندی
+     */
+    public LiveData<List<CategoryReport>> getIncomeReportByCategory(long startDate, long endDate) {
+        return transactionDao.getIncomeReportByCategory(startDate, endDate);
+    }
+
+    /**
+     * گزارش هزینه‌ها بر اساس تگ
+     */
+    public LiveData<List<TagReport>> getExpenseReportByTag(long startDate, long endDate) {
+        return transactionDao.getExpenseReportByTag(startDate, endDate);
+    }
+
+    /**
+     * گزارش درآمدها بر اساس تگ
+     */
+    public LiveData<List<TagReport>> getIncomeReportByTag(long startDate, long endDate) {
+        return transactionDao.getIncomeReportByTag(startDate, endDate);
+    }
+
+    /**
+     * گزارش ترکیبی هزینه‌ها بر اساس دسته‌بندی و تگ
+     */
+    public LiveData<List<CombinedReport>> getExpenseReportByCategoryAndTag(long startDate, long endDate) {
+        return transactionDao.getExpenseReportByCategoryAndTag(startDate, endDate);
+    }
+
+    /**
+     * گزارش ترکیبی درآمدها بر اساس دسته‌بندی و تگ
+     */
+    public LiveData<List<CombinedReport>> getIncomeReportByCategoryAndTag(long startDate, long endDate) {
+        return transactionDao.getIncomeReportByCategoryAndTag(startDate, endDate);
+    }
+
+    /**
+     * گزارش هزینه برای یک دسته‌بندی خاص
+     */
+    public LiveData<Long> getExpenseByCategoryInRange(long categoryId, long startDate, long endDate) {
+        return transactionDao.getExpenseByCategoryInRange(categoryId, startDate, endDate);
+    }
+
+    /**
+     * گزارش هزینه برای یک تگ خاص
+     */
+    public LiveData<Long> getExpenseByTagInRange(long tagId, long startDate, long endDate) {
+        return transactionDao.getExpenseByTagInRange(tagId, startDate, endDate);
     }
 
     public interface OnTransactionInsertedListener {

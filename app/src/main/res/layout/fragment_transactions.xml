@@ -86,11 +86,11 @@
             android:gravity="center"
             android:visibility="gone">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="📋"
-                android:textSize="64sp" />
+            <ImageView
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:src="@drawable/ic_analytics_large"
+                app:tint="?attr/colorOutline" />
 
             <TextView
                 android:layout_width="wrap_content"

@@ -37,7 +37,6 @@ public class SettingsFragment extends Fragment {
     private ThemeManager themeManager;
     private MaterialSwitch switchTheme;
     private TextView tvCurrentTheme;
-    private TextView tvThemeIcon;
 
     // برای انتخاب محل ذخیره پشتیبان
     private final ActivityResultLauncher<Intent> createBackupLauncher = registerForActivityResult(
@@ -90,7 +89,6 @@ public class SettingsFragment extends Fragment {
         themeManager = new ThemeManager(requireContext());
         switchTheme = view.findViewById(R.id.switch_theme);
         tvCurrentTheme = view.findViewById(R.id.tv_current_theme);
-        tvThemeIcon = view.findViewById(R.id.tv_theme_icon);
 
         // تنظیم وضعیت اولیه سوییچ تم
         updateThemeUI(themeManager.isDarkMode());
@@ -110,6 +108,11 @@ public class SettingsFragment extends Fragment {
         MaterialCardView cardTags = view.findViewById(R.id.card_tags);
         cardTags.setOnClickListener(v -> {
             Navigation.findNavController(v).navigate(R.id.tagsFragment);
+        });
+
+        MaterialCardView cardReports = view.findViewById(R.id.card_reports);
+        cardReports.setOnClickListener(v -> {
+            Navigation.findNavController(v).navigate(R.id.reportsFragment);
         });
 
         MaterialCardView cardBackup = view.findViewById(R.id.card_backup);
@@ -240,10 +243,8 @@ public class SettingsFragment extends Fragment {
         switchTheme.setChecked(isDarkMode);
         if (isDarkMode) {
             tvCurrentTheme.setText(R.string.dark_mode);
-            tvThemeIcon.setText("🌙");
         } else {
             tvCurrentTheme.setText(R.string.light_mode);
-            tvThemeIcon.setText("☀️");
         }
     }
 

@@ -133,4 +133,25 @@
     <string name="version_format">نسخه %s</string>
     <string name="copyright_format">© %d تمامی حقوق محفوظ است</string>
     <string name="close">بستن</string>
+
+    <!-- Reports -->
+    <string name="reports">گزارش‌ها</string>
+    <string name="reports_description">مشاهده گزارش تراکنش‌ها</string>
+    <string name="report_filters">فیلترهای گزارش</string>
+    <string name="date_range">بازه زمانی</string>
+    <string name="this_month">این ماه</string>
+    <string name="last_3_months">۳ ماه اخیر</string>
+    <string name="last_year">سال گذشته</string>
+    <string name="custom_range">بازه سفارشی</string>
+    <string name="group_by">گروه‌بندی بر اساس</string>
+    <string name="by_category">دسته‌بندی</string>
+    <string name="by_tag">تگ</string>
+    <string name="combined">ترکیبی</string>
+    <string name="transaction_type">نوع تراکنش</string>
+    <string name="total_amount">مجموع</string>
+    <string name="no_reports">گزارشی برای نمایش وجود ندارد</string>
+    <string name="transaction_count_format">%d تراکنش</string>
+    <string name="select_start_date">انتخاب تاریخ شروع</string>
+    <string name="select_end_date">انتخاب تاریخ پایان</string>
+    <string name="no_category">بدون دسته‌بندی</string>
 </resources>

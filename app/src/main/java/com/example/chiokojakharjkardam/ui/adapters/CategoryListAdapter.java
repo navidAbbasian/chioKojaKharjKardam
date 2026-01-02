@@ -56,14 +56,12 @@ public class CategoryListAdapter extends ListAdapter<Category, CategoryListAdapt
 
     class CategoryViewHolder extends RecyclerView.ViewHolder {
         private final MaterialCardView cardView;
-        private final TextView tvIcon;
         private final TextView tvName;
         private final TextView tvType;
 
         CategoryViewHolder(@NonNull View itemView) {
             super(itemView);
             cardView = itemView.findViewById(R.id.card_category);
-            tvIcon = itemView.findViewById(R.id.tv_icon);
             tvName = itemView.findViewById(R.id.tv_name);
             tvType = itemView.findViewById(R.id.tv_type);
 
@@ -76,7 +74,6 @@ public class CategoryListAdapter extends ListAdapter<Category, CategoryListAdapt
         }
 
         void bind(Category category) {
-            tvIcon.setText(category.getIcon());
             tvName.setText(category.getName());
 
             String typeText = "";
