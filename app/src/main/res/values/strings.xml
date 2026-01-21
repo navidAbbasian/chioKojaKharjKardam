@@ -69,16 +69,23 @@
     <string name="bill_title">عنوان</string>
     <string name="bill_title_hint">مثلا: قبض برق</string>
     <string name="due_date">تاریخ سررسید</string>
+    <string name="day_of_month">روز سررسید در ماه</string>
+    <string name="day_suffix">ام ماه</string>
     <string name="is_recurring">تکراری</string>
     <string name="recurring_monthly">ماهانه</string>
     <string name="recurring_yearly">سالانه</string>
     <string name="notify_before">یادآوری</string>
     <string name="notify_days_before">روز قبل از سررسید</string>
+    <string name="recurrence_count">تعداد تکرار</string>
+    <string name="recurrence_times">دفعه</string>
     <string name="mark_as_paid">پرداخت شد</string>
     <string name="paid">پرداخت شده</string>
     <string name="unpaid">پرداخت نشده</string>
     <string name="no_bills">هنوز قبضی ثبت نشده</string>
     <string name="add_first_bill">قبض‌ها و اقساط خود را اضافه کنید</string>
+    <string name="upcoming_bills">قبض‌های ماه‌های آینده</string>
+    <string name="this_month_bills">قبض‌های این ماه</string>
+    <string name="future_bills">قبض‌های آینده</string>
 
     <!-- Categories -->
     <string name="categories">دسته‌بندی‌ها</string>
@@ -129,7 +136,7 @@
     <!-- About -->
     <string name="about_title">درباره برنامه</string>
     <string name="about_description">برنامه مدیریت هزینه‌های خانگی\n\nاین برنامه به شما کمک می‌کند تا هزینه‌ها و درآمدهای خانواده را به راحتی مدیریت کنید. می‌توانید برای هر عضو خانواده کارت بانکی تعریف کرده و تراکنش‌ها را ثبت کنید.</string>
-    <string name="developer_info">توسعه‌دهنده: تیم چیوکجا</string>
+    <string name="developer_info">توسعه‌دهنده: تیم توسعه دهنده آکو کد</string>
     <string name="version_format">نسخه %s</string>
     <string name="copyright_format">© %d تمامی حقوق محفوظ است</string>
     <string name="close">بستن</string>

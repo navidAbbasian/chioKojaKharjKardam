@@ -5,10 +5,11 @@
     android:id="@+id/card_transaction"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="1dp"
-    style="?attr/materialCardViewFilledStyle">
+    android:layout_marginBottom="10dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp"
+    app:cardBackgroundColor="?attr/colorSurfaceContainerLow">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,28 +18,38 @@
         android:padding="16dp"
         android:gravity="center_vertical">
 
-        <!-- آیکون -->
-        <TextView
-            android:id="@+id/tv_icon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:gravity="center"
-            android:textSize="24sp"
-            android:text="📉" />
+        <!-- آیکون با پس‌زمینه دایره‌ای -->
+        <FrameLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/circle_shape"
+            android:backgroundTint="?attr/colorSurfaceContainerHigh">
+
+            <ImageView
+                android:id="@+id/iv_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_transactions"
+                app:tint="?attr/colorOnSurfaceVariant" />
+
+        </FrameLayout>
 
         <!-- توضیحات و تاریخ -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="14dp"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/tv_description"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:letterSpacing="-0.01"
                 android:textColor="?attr/colorOnSurface"
                 android:maxLines="1"
                 android:ellipsize="end" />
@@ -58,8 +69,9 @@
             android:id="@+id/tv_amount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:letterSpacing="-0.01" />
 
     </LinearLayout>
 

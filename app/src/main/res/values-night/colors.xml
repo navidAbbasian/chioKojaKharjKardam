@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Modern 2026 Color Palette - Dark Theme -->
+
+    <!-- Primary Colors - Soft Sage Green (Lighter for dark mode) -->
+    <color name="primary">#7AC49A</color>
+    <color name="primary_light">#9BD4B2</color>
+    <color name="primary_dark">#5A9B7A</color>
+    <color name="primary_container">#1F3D2E</color>
+    <color name="on_primary">#1A3627</color>
+    <color name="on_primary_container">#B8E8CC</color>
+
+    <!-- Secondary Colors - Warm Coral (Lighter for dark mode) -->
+    <color name="secondary">#FFB4A1</color>
+    <color name="secondary_container">#5C2A1D</color>
+    <color name="on_secondary">#4A251A</color>
+    <color name="on_secondary_container">#FFE4DC</color>
+
+    <!-- Tertiary Colors - Soft Lavender -->
+    <color name="tertiary">#C8B8FF</color>
+    <color name="tertiary_container">#3D2F66</color>
+    <color name="on_tertiary">#2E254F</color>
+
+    <!-- Error Colors -->
+    <color name="error">#FFB4AB</color>
+    <color name="error_container">#5C1A1A</color>
+    <color name="on_error">#4A1515</color>
+    <color name="on_error_container">#FFE5E5</color>
+
+    <!-- Surface Colors - Deep & Warm -->
+    <color name="surface">#141413</color>
+    <color name="surface_dim">#141413</color>
+    <color name="surface_bright">#3B3A38</color>
+    <color name="surface_container_lowest">#0F0E0E</color>
+    <color name="surface_container_low">#1C1B1A</color>
+    <color name="surface_container">#212120</color>
+    <color name="surface_container_high">#2B2A29</color>
+    <color name="surface_container_highest">#363533</color>
+    <color name="on_surface">#E7E6E3</color>
+    <color name="surface_variant">#4A4846</color>
+    <color name="on_surface_variant">#CCC9C5</color>
+    <color name="outline">#969390</color>
+    <color name="outline_variant">#4A4846</color>
+
+    <!-- Expense & Income - Modern Soft Tones -->
+    <color name="expense_color">#FFB4AB</color>
+    <color name="expense_container">#5C1A1A</color>
+    <color name="income_color">#7AC49A</color>
+    <color name="income_container">#1A4231</color>
+
+    <!-- Dashboard Card - Dark Gradient -->
+    <color name="dashboard_card_bg">#1F3D2E</color>
+    <color name="dashboard_card_end">#2A5243</color>
+    <color name="on_dashboard_card">#FFFFFF</color>
+    <color name="dashboard_expense_accent">#FFB4AB</color>
+    <color name="dashboard_income_accent">#7AC49A</color>
+
+    <!-- Bill Paid Badge -->
+    <color name="paid_badge_bg">#5A9B7A</color>
+    <color name="on_paid_badge">#FFFFFF</color>
+    <color name="unpaid_badge_bg">#FFB4A1</color>
+
+    <!-- Card Colors - Modern Bank Card Palette Dark -->
+    <color name="card_gradient_start">#1A1D26</color>
+    <color name="card_gradient_end">#2D3142</color>
+
+    <!-- Accent Colors for UI Elements -->
+    <color name="accent_blue">#8BBDEA</color>
+    <color name="accent_purple">#C8B8FF</color>
+    <color name="accent_orange">#FFD0A0</color>
+    <color name="accent_pink">#FFCCE0</color>
+    <color name="accent_teal">#8BDCD8</color>
+
+    <!-- Scrim & Overlay -->
+    <color name="scrim">#000000</color>
+    <color name="scrim_light">#40000000</color>
+
+    <!-- Legacy colors - keeping for compatibility -->
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
+

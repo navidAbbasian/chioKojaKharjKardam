@@ -6,16 +6,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.example.chiokojakharjkardam.R;
-import com.example.chiokojakharjkardam.data.database.AppDatabase;
 import com.example.chiokojakharjkardam.data.database.entity.Family;
 import com.example.chiokojakharjkardam.data.database.entity.Member;
 import com.example.chiokojakharjkardam.data.repository.FamilyRepository;
@@ -39,13 +33,7 @@ public class SetupActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // فعال‌سازی edge-to-edge برای پشتیبانی از notch
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-
         setContentView(R.layout.activity_setup);
-
-        // تنظیم padding برای notch
-        setupEdgeToEdge();
 
         familyRepository = new FamilyRepository(getApplication());
         memberRepository = new MemberRepository(getApplication());
@@ -54,14 +42,6 @@ public class SetupActivity extends AppCompatActivity {
         setupListeners();
     }
 
-    private void setupEdgeToEdge() {
-        View rootView = findViewById(android.R.id.content);
-        ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, windowInsets) -> {
-            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(insets.left, insets.top, insets.right, insets.bottom);
-            return WindowInsetsCompat.CONSUMED;
-        });
-    }
 
     private void initViews() {
         etFamilyName = findViewById(R.id.et_family_name);

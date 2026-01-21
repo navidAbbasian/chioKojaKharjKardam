@@ -11,50 +11,54 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingBottom="80dp">
+        android:paddingBottom="88dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="20dp">
 
-            <!-- کارت خلاصه مالی -->
+            <!-- کارت خلاصه مالی - Modern Dashboard Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp"
                 app:cardBackgroundColor="@color/dashboard_card_bg">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="24dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/total_balance"
-                        android:textSize="14sp"
+                        android:textSize="13sp"
+                        android:alpha="0.85"
+                        android:letterSpacing="0.02"
                         android:textColor="@color/on_dashboard_card" />
 
                     <TextView
                         android:id="@+id/tv_total_balance"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="8dp"
                         android:text="۰ تومان"
-                        android:textSize="28sp"
+                        android:textSize="32sp"
                         android:textStyle="bold"
+                        android:letterSpacing="-0.02"
                         android:textColor="@color/on_dashboard_card" />
 
                     <!-- خرج و درآمد این ماه -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="24dp"
                         android:orientation="horizontal">
 
                         <LinearLayout
@@ -67,17 +71,20 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/this_month_expense"
-                                android:textSize="12sp"
+                                android:textSize="11sp"
+                                android:alpha="0.75"
+                                android:letterSpacing="0.03"
                                 android:textColor="@color/on_dashboard_card" />
 
                             <TextView
                                 android:id="@+id/tv_month_expense"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
                                 android:text="۰ تومان"
-                                android:textSize="16sp"
+                                android:textSize="17sp"
                                 android:textStyle="bold"
-                                android:textColor="#FFCDD2" />
+                                android:textColor="@color/dashboard_expense_accent" />
 
                         </LinearLayout>
 
@@ -91,17 +98,20 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/this_month_income"
-                                android:textSize="12sp"
+                                android:textSize="11sp"
+                                android:alpha="0.75"
+                                android:letterSpacing="0.03"
                                 android:textColor="@color/on_dashboard_card" />
 
                             <TextView
                                 android:id="@+id/tv_month_income"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
                                 android:text="۰ تومان"
-                                android:textSize="16sp"
+                                android:textSize="17sp"
                                 android:textStyle="bold"
-                                android:textColor="#C8E6C9" />
+                                android:textColor="@color/dashboard_income_accent" />
 
                         </LinearLayout>
 
@@ -115,7 +125,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="32dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
@@ -124,16 +134,18 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/recent_transactions"
-                    android:textSize="18sp"
+                    android:textSize="17sp"
                     android:textStyle="bold"
+                    android:letterSpacing="-0.01"
                     android:textColor="?attr/colorOnSurface" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_see_all"
-                    style="@style/Widget.Material3.Button.TextButton"
+                    style="@style/Widget.App.Button.Text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/see_all" />
+                    android:text="@string/see_all"
+                    android:textSize="13sp" />
 
             </LinearLayout>
 
@@ -142,7 +154,7 @@
                 android:id="@+id/rv_recent_transactions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="12dp"
                 android:nestedScrollingEnabled="false" />
 
             <!-- حالت خالی -->
@@ -152,21 +164,23 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:padding="32dp"
+                android:padding="48dp"
                 android:visibility="gone">
 
                 <ImageView
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
                     android:src="@drawable/ic_analytics_large"
-                    app:tint="?attr/colorOutline" />
+                    android:alpha="0.4"
+                    app:tint="?attr/colorOnSurfaceVariant" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="20dp"
                     android:text="@string/no_transactions"
                     android:textSize="16sp"
+                    android:textStyle="bold"
                     android:textColor="?attr/colorOnSurface" />
 
                 <TextView
@@ -175,6 +189,7 @@
                     android:layout_marginTop="8dp"
                     android:text="@string/add_first_transaction"
                     android:textSize="14sp"
+                    android:gravity="center"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
             </LinearLayout>
@@ -183,13 +198,13 @@
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- FAB افزودن تراکنش -->
+    <!-- FAB افزودن تراکنش - Modern Rounded -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_transaction"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|start"
-        android:layout_margin="16dp"
+        android:layout_margin="20dp"
         android:src="@drawable/ic_add"
         android:contentDescription="@string/add_transaction" />
 

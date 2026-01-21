@@ -158,5 +158,33 @@ public interface TransactionDao {
             "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
             "WHERE t.type = 0 AND tt.tagId = :tagId AND t.date BETWEEN :startDate AND :endDate")
     LiveData<Long> getExpenseByTagInRange(long tagId, long startDate, long endDate);
+
+    /**
+     * دریافت تراکنش‌های یک دسته‌بندی به صورت همزمان (برای حذف)
+     */
+    @Query("SELECT * FROM transactions WHERE categoryId = :categoryId")
+    List<Transaction> getTransactionsByCategorySync(long categoryId);
+
+    /**
+     * دریافت تراکنش‌های مرتبط با یک تگ به صورت همزمان (برای حذف)
+     */
+    @Query("SELECT t.* FROM transactions t " +
+            "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
+            "WHERE tt.tagId = :tagId")
+    List<Transaction> getTransactionsByTagSync(long tagId);
+
+    /**
+     * شمارش تراکنش‌های یک دسته‌بندی
+     */
+    @Query("SELECT COUNT(*) FROM transactions WHERE categoryId = :categoryId")
+    int getTransactionCountByCategory(long categoryId);
+
+    /**
+     * شمارش تراکنش‌های مرتبط با یک تگ
+     */
+    @Query("SELECT COUNT(DISTINCT t.id) FROM transactions t " +
+            "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
+            "WHERE tt.tagId = :tagId")
+    int getTransactionCountByTag(long tagId);
 }
 

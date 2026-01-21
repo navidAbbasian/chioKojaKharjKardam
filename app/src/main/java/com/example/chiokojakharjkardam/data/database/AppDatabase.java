@@ -75,22 +75,22 @@ public abstract class AppDatabase extends RoomDatabase {
                 CategoryDao categoryDao = INSTANCE.categoryDao();
 
                 // دسته‌بندی‌های پیش‌فرض - خرج
-                categoryDao.insert(new Category("تغذیه", "🍎", "#4CAF50", Category.TYPE_EXPENSE, true));
-                categoryDao.insert(new Category("حمل‌ونقل", "🚗", "#2196F3", Category.TYPE_EXPENSE, true));
-                categoryDao.insert(new Category("قبوض", "📱", "#FF9800", Category.TYPE_EXPENSE, true));
-                categoryDao.insert(new Category("مسکن", "🏠", "#9C27B0", Category.TYPE_EXPENSE, true));
-                categoryDao.insert(new Category("پوشاک", "👕", "#E91E63", Category.TYPE_EXPENSE, true));
-                categoryDao.insert(new Category("سلامت", "💊", "#00BCD4", Category.TYPE_EXPENSE, true));
-                categoryDao.insert(new Category("تفریح", "🎬", "#FF5722", Category.TYPE_EXPENSE, true));
-                categoryDao.insert(new Category("آموزش", "📚", "#3F51B5", Category.TYPE_EXPENSE, true));
+                categoryDao.insert(new Category("تغذیه", "", "#4CAF50", Category.TYPE_EXPENSE, true));
+                categoryDao.insert(new Category("حمل‌ونقل", "", "#2196F3", Category.TYPE_EXPENSE, true));
+                categoryDao.insert(new Category("قبوض", "", "#FF9800", Category.TYPE_EXPENSE, true));
+                categoryDao.insert(new Category("مسکن", "", "#9C27B0", Category.TYPE_EXPENSE, true));
+                categoryDao.insert(new Category("پوشاک", "", "#E91E63", Category.TYPE_EXPENSE, true));
+                categoryDao.insert(new Category("سلامت", "", "#00BCD4", Category.TYPE_EXPENSE, true));
+                categoryDao.insert(new Category("تفریح", "", "#FF5722", Category.TYPE_EXPENSE, true));
+                categoryDao.insert(new Category("آموزش", "", "#3F51B5", Category.TYPE_EXPENSE, true));
 
                 // دسته‌بندی‌های پیش‌فرض - هردو
-                categoryDao.insert(new Category("هدیه", "🎁", "#F44336", Category.TYPE_BOTH, true));
-                categoryDao.insert(new Category("سایر", "📦", "#607D8B", Category.TYPE_BOTH, true));
+                categoryDao.insert(new Category("هدیه", "", "#F44336", Category.TYPE_BOTH, true));
+                categoryDao.insert(new Category("سایر", "", "#607D8B", Category.TYPE_BOTH, true));
 
                 // دسته‌بندی‌های پیش‌فرض - درآمد
-                categoryDao.insert(new Category("حقوق", "💰", "#4CAF50", Category.TYPE_INCOME, true));
-                categoryDao.insert(new Category("سود", "📈", "#8BC34A", Category.TYPE_INCOME, true));
+                categoryDao.insert(new Category("حقوق", "", "#4CAF50", Category.TYPE_INCOME, true));
+                categoryDao.insert(new Category("سود", "", "#8BC34A", Category.TYPE_INCOME, true));
             });
         }
     };

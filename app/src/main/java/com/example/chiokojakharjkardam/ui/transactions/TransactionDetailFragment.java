@@ -127,7 +127,7 @@ public class TransactionDetailFragment extends Fragment {
         // بارگذاری نام دسته‌بندی
         viewModel.getCategoryById(transaction.getCategoryId()).observe(getViewLifecycleOwner(), category -> {
             if (category != null) {
-                tvCategory.setText(category.getIcon() + " " + category.getName());
+                tvCategory.setText(category.getName());
             } else {
                 tvCategory.setText("-");
             }

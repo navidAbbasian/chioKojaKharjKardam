@@ -148,7 +148,7 @@ public class TransactionsFragment extends Fragment {
         List<String> categoryNames = new ArrayList<>();
         categoryNames.add("همه دسته‌بندی‌ها");
         for (Category category : categoriesList) {
-            categoryNames.add(category.getIcon() + " " + category.getName());
+            categoryNames.add(category.getName());
         }
         ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_spinner_item, categoryNames);

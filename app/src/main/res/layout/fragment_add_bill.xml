@@ -47,7 +47,7 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- تاریخ سررسید -->
+        <!-- تاریخ سررسید (برای قبض‌های غیرتکراری) -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_due_date"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
@@ -68,6 +68,26 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- روز سررسید (برای قبض‌های تکراری) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_day_of_month"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="@string/day_of_month"
+            android:visibility="gone"
+            app:suffixText="@string/day_suffix">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_day_of_month"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:maxLength="2" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
         <!-- تکراری -->
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switch_recurring"
@@ -84,6 +104,26 @@
             android:layout_marginTop="8dp"
             android:background="@drawable/spinner_background"
             android:visibility="gone" />
+
+        <!-- تعداد تکرار -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/til_recurrence_count"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/recurrence_count"
+            android:visibility="gone"
+            app:suffixText="@string/recurrence_times">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_recurrence_count"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:text="12" />
+
+        </com.google.android.material.textfield.TextInputLayout>
 
         <!-- یادآوری -->
         <TextView

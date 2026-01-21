@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -59,7 +60,7 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
 
     class TransactionViewHolder extends RecyclerView.ViewHolder {
         private final MaterialCardView cardView;
-        private final TextView tvIcon;
+        private final ImageView ivIcon;
         private final TextView tvDescription;
         private final TextView tvAmount;
         private final TextView tvDate;
@@ -67,7 +68,7 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
         TransactionViewHolder(@NonNull View itemView) {
             super(itemView);
             cardView = itemView.findViewById(R.id.card_transaction);
-            tvIcon = itemView.findViewById(R.id.tv_icon);
+            ivIcon = itemView.findViewById(R.id.iv_icon);
             tvDescription = itemView.findViewById(R.id.tv_description);
             tvAmount = itemView.findViewById(R.id.tv_amount);
             tvDate = itemView.findViewById(R.id.tv_date);

@@ -27,10 +27,6 @@ public class CategoriesFragment extends Fragment {
     private RecyclerView rvCategories;
     private CategoryListAdapter adapter;
 
-    // آیکون‌های پیش‌فرض برای دسته‌بندی
-    private final String[] ICONS = {"🍎", "🚗", "📱", "🏠", "👕", "💊", "🎬", "📚", "🎁", "📦", "💰", "💵"};
-    private int selectedIconIndex = 0;
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -79,10 +75,6 @@ public class CategoriesFragment extends Fragment {
 
         TextInputEditText etName = dialogView.findViewById(R.id.et_category_name);
         RadioGroup rgType = dialogView.findViewById(R.id.rg_type);
-        RecyclerView rvIcons = dialogView.findViewById(R.id.rv_icons);
-
-        // تنظیم آیکون‌ها
-        setupIconsRecyclerView(rvIcons);
 
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.add_category)
@@ -97,7 +89,7 @@ public class CategoriesFragment extends Fragment {
                             type = Category.TYPE_BOTH;
                         }
 
-                        Category category = new Category(name, ICONS[selectedIconIndex], "#4CAF50", type);
+                        Category category = new Category(name, "", "#4CAF50", type);
                         viewModel.insertCategory(category);
                         Toast.makeText(requireContext(), "دسته‌بندی اضافه شد", Toast.LENGTH_SHORT).show();
                     } else {
@@ -127,7 +119,6 @@ public class CategoriesFragment extends Fragment {
 
         TextInputEditText etName = dialogView.findViewById(R.id.et_category_name);
         RadioGroup rgType = dialogView.findViewById(R.id.rg_type);
-        RecyclerView rvIcons = dialogView.findViewById(R.id.rv_icons);
 
         // مقادیر فعلی
         etName.setText(category.getName());
@@ -145,16 +136,6 @@ public class CategoriesFragment extends Fragment {
                 break;
         }
 
-        // پیدا کردن آیکون فعلی
-        for (int i = 0; i < ICONS.length; i++) {
-            if (ICONS[i].equals(category.getIcon())) {
-                selectedIconIndex = i;
-                break;
-            }
-        }
-
-        setupIconsRecyclerView(rvIcons);
-
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle("ویرایش دسته‌بندی")
                 .setView(dialogView)
@@ -169,7 +150,6 @@ public class CategoriesFragment extends Fragment {
                         }
 
                         category.setName(name);
-                        category.setIcon(ICONS[selectedIconIndex]);
                         category.setType(type);
                         viewModel.updateCategory(category);
                         Toast.makeText(requireContext(), "دسته‌بندی ویرایش شد", Toast.LENGTH_SHORT).show();
@@ -180,81 +160,28 @@ public class CategoriesFragment extends Fragment {
     }
 
     private void showDeleteConfirmDialog(Category category) {
-        new MaterialAlertDialogBuilder(requireContext())
-                .setTitle("حذف دسته‌بندی")
-                .setMessage("آیا از حذف «" + category.getName() + "» مطمئن هستید؟")
-                .setPositiveButton("حذف", (dialog, which) -> {
-                    viewModel.deleteCategory(category);
-                    Toast.makeText(requireContext(), "دسته‌بندی حذف شد", Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton(R.string.cancel, null)
-                .show();
-    }
+        // ابتدا تعداد تراکنش‌های مرتبط را دریافت می‌کنیم
+        viewModel.getTransactionCount(category.getId(), count -> {
+            requireActivity().runOnUiThread(() -> {
+                String message;
+                if (count > 0) {
+                    message = "با حذف دسته‌بندی «" + category.getName() + "»، تعداد " + count +
+                            " تراکنش مرتبط با آن نیز حذف خواهد شد و موجودی کارت‌ها بازگردانده می‌شود.\n\nآیا مطمئن هستید؟";
+                } else {
+                    message = "آیا از حذف «" + category.getName() + "» مطمئن هستید؟";
+                }
 
-    private void setupIconsRecyclerView(RecyclerView rvIcons) {
-        IconAdapter iconAdapter = new IconAdapter(ICONS, selectedIconIndex, position -> {
-            selectedIconIndex = position;
-        });
-        rvIcons.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-        rvIcons.setAdapter(iconAdapter);
-    }
-
-    // آداپتر ساده برای آیکون‌ها
-    private static class IconAdapter extends RecyclerView.Adapter<IconAdapter.IconViewHolder> {
-        private final String[] icons;
-        private int selectedPosition;
-        private final OnIconClickListener listener;
-
-        interface OnIconClickListener {
-            void onIconClick(int position);
-        }
-
-        IconAdapter(String[] icons, int selectedPosition, OnIconClickListener listener) {
-            this.icons = icons;
-            this.selectedPosition = selectedPosition;
-            this.listener = listener;
-        }
-
-        @NonNull
-        @Override
-        public IconViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_icon, parent, false);
-            return new IconViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull IconViewHolder holder, int position) {
-            holder.bind(icons[position], position == selectedPosition);
-            holder.itemView.setOnClickListener(v -> {
-                int oldPosition = selectedPosition;
-                selectedPosition = position;
-                notifyItemChanged(oldPosition);
-                notifyItemChanged(selectedPosition);
-                listener.onIconClick(position);
+                new MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("حذف دسته‌بندی")
+                        .setMessage(message)
+                        .setPositiveButton("حذف", (dialog, which) -> {
+                            viewModel.deleteCategory(category);
+                            Toast.makeText(requireContext(), "دسته‌بندی حذف شد", Toast.LENGTH_SHORT).show();
+                        })
+                        .setNegativeButton(R.string.cancel, null)
+                        .show();
             });
-        }
-
-        @Override
-        public int getItemCount() {
-            return icons.length;
-        }
-
-        static class IconViewHolder extends RecyclerView.ViewHolder {
-            private final android.widget.TextView tvIcon;
-            private final View container;
-
-            IconViewHolder(@NonNull View itemView) {
-                super(itemView);
-                tvIcon = itemView.findViewById(R.id.tv_icon);
-                container = itemView;
-            }
-
-            void bind(String icon, boolean isSelected) {
-                tvIcon.setText(icon);
-                container.setBackgroundResource(isSelected ? R.drawable.circle_shape : 0);
-            }
-        }
+        });
     }
 }
 

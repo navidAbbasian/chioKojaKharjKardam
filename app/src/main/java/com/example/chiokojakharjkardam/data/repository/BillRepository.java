@@ -42,6 +42,19 @@ public class BillRepository {
         });
     }
 
+    public void insertAll(List<Bill> bills, OnBillsInsertedListener listener) {
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            List<Long> ids = billDao.insertAll(bills);
+            // Set IDs on bills
+            for (int i = 0; i < bills.size(); i++) {
+                bills.get(i).setId(ids.get(i));
+            }
+            if (listener != null) {
+                listener.onBillsInserted(bills);
+            }
+        });
+    }
+
     public void update(Bill bill) {
         AppDatabase.databaseWriteExecutor.execute(() -> billDao.update(bill));
     }
@@ -89,6 +102,10 @@ public class BillRepository {
 
     public interface OnBillInsertedWithBillListener {
         void onBillInserted(Bill bill);
+    }
+
+    public interface OnBillsInsertedListener {
+        void onBillsInserted(List<Bill> bills);
     }
 
     public interface OnBillsLoadedListener {

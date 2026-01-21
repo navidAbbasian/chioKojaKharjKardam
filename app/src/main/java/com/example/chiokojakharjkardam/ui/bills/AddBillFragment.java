@@ -24,6 +24,11 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.slider.Slider;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 public class AddBillFragment extends Fragment {
 
@@ -31,9 +36,14 @@ public class AddBillFragment extends Fragment {
 
     private TextInputEditText etTitle;
     private TextInputEditText etAmount;
+    private TextInputLayout tilDueDate;
     private TextInputEditText etDueDate;
+    private TextInputLayout tilDayOfMonth;
+    private TextInputEditText etDayOfMonth;
     private SwitchMaterial switchRecurring;
     private Spinner spinnerRecurringType;
+    private TextInputLayout tilRecurrenceCount;
+    private TextInputEditText etRecurrenceCount;
     private Slider sliderNotify;
     private TextView tvNotifyDays;
     private MaterialButton btnSave;
@@ -74,9 +84,14 @@ public class AddBillFragment extends Fragment {
     private void initViews(View view) {
         etTitle = view.findViewById(R.id.et_title);
         etAmount = view.findViewById(R.id.et_amount);
+        tilDueDate = view.findViewById(R.id.til_due_date);
         etDueDate = view.findViewById(R.id.et_due_date);
+        tilDayOfMonth = view.findViewById(R.id.til_day_of_month);
+        etDayOfMonth = view.findViewById(R.id.et_day_of_month);
         switchRecurring = view.findViewById(R.id.switch_recurring);
         spinnerRecurringType = view.findViewById(R.id.spinner_recurring_type);
+        tilRecurrenceCount = view.findViewById(R.id.til_recurrence_count);
+        etRecurrenceCount = view.findViewById(R.id.et_recurrence_count);
         sliderNotify = view.findViewById(R.id.slider_notify);
         tvNotifyDays = view.findViewById(R.id.tv_notify_days);
         btnSave = view.findViewById(R.id.btn_save);
@@ -95,6 +110,13 @@ public class AddBillFragment extends Fragment {
 
         switchRecurring.setOnCheckedChangeListener((buttonView, isChecked) -> {
             spinnerRecurringType.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            // فقط در حالت ایجاد جدید
+            if (editBillId == -1) {
+                tilRecurrenceCount.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+                // تغییر بین دیت پیکر و روز ماه
+                tilDueDate.setVisibility(isChecked ? View.GONE : View.VISIBLE);
+                tilDayOfMonth.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            }
         });
 
         sliderNotify.addOnChangeListener((slider, value, fromUser) -> {
@@ -167,9 +189,9 @@ public class AddBillFragment extends Fragment {
                 : Bill.RECURRING_NONE;
         int notifyBefore = (int) sliderNotify.getValue();
 
-        Bill bill = new Bill(title, amount, selectedDueDate, isRecurring, recurringType, notifyBefore);
-
         if (editBillId != -1) {
+            // حالت ویرایش - فقط یک قبض آپدیت می‌شود
+            Bill bill = new Bill(title, amount, selectedDueDate, isRecurring, recurringType, notifyBefore);
             bill.setId(editBillId);
             // حفظ اطلاعات قبلی که نباید تغییر کنند
             if (existingBill != null) {
@@ -178,12 +200,108 @@ public class AddBillFragment extends Fragment {
                 bill.setCardId(existingBill.getCardId());
             }
             viewModel.updateBill(bill);
+            Toast.makeText(requireContext(), "قبض ذخیره شد", Toast.LENGTH_SHORT).show();
         } else {
-            viewModel.insertBill(bill);
+            // حالت ایجاد جدید
+            if (isRecurring) {
+                // ایجاد چندین قبض بر اساس تعداد تکرار
+                int recurrenceCount = getRecurrenceCount();
+                if (recurrenceCount <= 0) {
+                    etRecurrenceCount.setError("تعداد تکرار را وارد کنید");
+                    return;
+                }
+
+                int dayOfMonth = getDayOfMonth();
+                if (dayOfMonth <= 0 || dayOfMonth > 31) {
+                    etDayOfMonth.setError("روز معتبر وارد کنید (۱ تا ۳۱)");
+                    return;
+                }
+
+                List<Bill> bills = createRecurringBillsFromDay(title, amount, dayOfMonth,
+                        recurringType, notifyBefore, recurrenceCount);
+                viewModel.insertBills(bills);
+                Toast.makeText(requireContext(),
+                        PersianDateUtils.toPersianDigits(String.valueOf(recurrenceCount)) + " قبض ایجاد شد",
+                        Toast.LENGTH_SHORT).show();
+            } else {
+                // یک قبض ساده ایجاد می‌شود
+                Bill bill = new Bill(title, amount, selectedDueDate, isRecurring, recurringType, notifyBefore);
+                viewModel.insertBill(bill);
+                Toast.makeText(requireContext(), "قبض ذخیره شد", Toast.LENGTH_SHORT).show();
+            }
         }
 
-        Toast.makeText(requireContext(), "قبض ذخیره شد", Toast.LENGTH_SHORT).show();
         Navigation.findNavController(requireView()).popBackStack();
+    }
+
+    private int getDayOfMonth() {
+        String dayStr = etDayOfMonth.getText().toString().trim();
+        if (dayStr.isEmpty()) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(dayStr);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private int getRecurrenceCount() {
+        String countStr = etRecurrenceCount.getText().toString().trim();
+        if (countStr.isEmpty()) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(countStr);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private List<Bill> createRecurringBillsFromDay(String title, long amount, int dayOfMonth,
+                                                    int recurringType, int notifyBefore, int count) {
+        List<Bill> bills = new ArrayList<>();
+        Calendar calendar = Calendar.getInstance();
+
+        // شروع از ماه جاری با روز مشخص شده
+        int maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        calendar.set(Calendar.DAY_OF_MONTH, Math.min(dayOfMonth, maxDay));
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+
+        // اگر روز گذشته، از ماه بعد شروع کن
+        if (calendar.getTimeInMillis() < System.currentTimeMillis()) {
+            if (recurringType == Bill.RECURRING_MONTHLY) {
+                calendar.add(Calendar.MONTH, 1);
+                maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+                calendar.set(Calendar.DAY_OF_MONTH, Math.min(dayOfMonth, maxDay));
+            } else if (recurringType == Bill.RECURRING_YEARLY) {
+                calendar.add(Calendar.YEAR, 1);
+                maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+                calendar.set(Calendar.DAY_OF_MONTH, Math.min(dayOfMonth, maxDay));
+            }
+        }
+
+        for (int i = 0; i < count; i++) {
+            Bill bill = new Bill(title, amount, calendar.getTimeInMillis(), true, recurringType, notifyBefore);
+            bills.add(bill);
+
+            // محاسبه تاریخ سررسید بعدی
+            if (recurringType == Bill.RECURRING_MONTHLY) {
+                calendar.add(Calendar.MONTH, 1);
+                // تنظیم روز ماه به روز اصلی
+                maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+                calendar.set(Calendar.DAY_OF_MONTH, Math.min(dayOfMonth, maxDay));
+            } else if (recurringType == Bill.RECURRING_YEARLY) {
+                calendar.add(Calendar.YEAR, 1);
+                maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+                calendar.set(Calendar.DAY_OF_MONTH, Math.min(dayOfMonth, maxDay));
+            }
+        }
+
+        return bills;
     }
 }
 

@@ -9,36 +9,36 @@ public class Constants {
     public static final String NOTIFICATION_CHANNEL_ID = "bill_reminder_channel";
     public static final String NOTIFICATION_CHANNEL_NAME = "یادآوری قبوض";
 
-    // Default colors for members
+    // Default colors for members - Modern 2026 palette
     public static final String[] MEMBER_COLORS = {
-            "#4CAF50", // سبز
-            "#2196F3", // آبی
-            "#FF9800", // نارنجی
-            "#9C27B0", // بنفش
-            "#E91E63", // صورتی
-            "#00BCD4", // فیروزه‌ای
-            "#FF5722", // قرمز نارنجی
-            "#3F51B5"  // نیلی
+            "#3D7A5F", // سبز نعنایی
+            "#5B9BD5", // آبی ملایم
+            "#E07A5F", // مرجانی
+            "#8B7EC8", // لوندر
+            "#E8A0BF", // صورتی ملایم
+            "#5BBFBA", // فیروزه‌ای
+            "#F0A868", // نارنجی ملایم
+            "#7A8B99"  // خاکستری آبی
     };
 
-    // Default colors for bank cards
+    // Default colors for bank cards - 8 Main Colors (2026)
     public static final String[] CARD_COLORS = {
-            "#1A237E", // آبی تیره
-            "#004D40", // سبز تیره
-            "#BF360C", // قرمز تیره
-            "#4A148C", // بنفش تیره
-            "#263238", // خاکستری تیره
-            "#E65100", // نارنجی تیره
-            "#1B5E20", // سبز
-            "#880E4F"  // صورتی تیره
+            "#DC2626", // قرمز (Red)
+            "#EAB308", // زرد (Yellow)
+            "#16A34A", // سبز (Green)
+            "#7C3AED", // بنفش (Purple)
+            "#EC4899", // صورتی (Pink)
+            "#1F2937", // سیاه (Black)
+            "#2563EB", // آبی (Blue)
+            "#D97706"  // طلایی (Gold)
     };
 
-    // Default colors for tags
+    // Default colors for tags - Modern soft palette
     public static final String[] TAG_COLORS = {
-            "#F44336", "#E91E63", "#9C27B0", "#673AB7",
-            "#3F51B5", "#2196F3", "#03A9F4", "#00BCD4",
-            "#009688", "#4CAF50", "#8BC34A", "#CDDC39",
-            "#FFEB3B", "#FFC107", "#FF9800", "#FF5722"
+            "#E35555", "#E07A5F", "#8B7EC8", "#5B9BD5",
+            "#3D7A5F", "#5BBFBA", "#F0A868", "#E8A0BF",
+            "#7A8B99", "#3D9970", "#9F7AEA", "#48BB78",
+            "#ED8936", "#667EEA", "#38B2AC", "#FC8181"
     };
 
     // Iranian banks

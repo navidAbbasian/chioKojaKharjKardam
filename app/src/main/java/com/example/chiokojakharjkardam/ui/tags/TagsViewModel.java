@@ -37,5 +37,9 @@ public class TagsViewModel extends AndroidViewModel {
     public void deleteTag(Tag tag) {
         repository.delete(tag);
     }
+
+    public void getTransactionCount(long tagId, TagRepository.OnTransactionCountListener listener) {
+        repository.getTransactionCount(tagId, listener);
+    }
 }
 

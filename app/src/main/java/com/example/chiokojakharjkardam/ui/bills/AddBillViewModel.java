@@ -10,6 +10,8 @@ import com.example.chiokojakharjkardam.data.database.entity.Bill;
 import com.example.chiokojakharjkardam.data.repository.BillRepository;
 import com.example.chiokojakharjkardam.utils.BillReminderScheduler;
 
+import java.util.List;
+
 public class AddBillViewModel extends AndroidViewModel {
 
     private final Application application;
@@ -32,9 +34,18 @@ public class AddBillViewModel extends AndroidViewModel {
         });
     }
 
+    public void insertBills(List<Bill> bills) {
+        repository.insertAll(bills, insertedBills -> {
+            // زمان‌بندی یادآوری برای همه قبض‌ها
+            for (Bill bill : insertedBills) {
+                BillReminderScheduler.scheduleReminder(application, bill);
+            }
+        });
+    }
+
     public void updateBill(Bill bill) {
         repository.update(bill);
-        // زمان‌بندی مجدد یادآوری
+        // زمان‌بندی مجدد یا��آوری
         BillReminderScheduler.scheduleReminder(application, bill);
     }
 }

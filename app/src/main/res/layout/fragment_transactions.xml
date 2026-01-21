@@ -12,60 +12,59 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- فیلترها -->
-        <com.google.android.material.card.MaterialCardView
+        <!-- فیلترها - Modern Style -->
+        <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="0dp"
-            app:cardElevation="2dp">
+            android:scrollbars="none"
+            android:background="?attr/colorSurface">
 
-            <HorizontalScrollView
-                android:layout_width="match_parent"
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group_filter"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:scrollbars="none">
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="14dp"
+                app:singleSelection="true"
+                app:chipSpacingHorizontal="10dp">
 
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/chip_group_filter"
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_all"
+                    style="@style/Widget.Material3.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    app:singleSelection="true">
+                    android:text="همه"
+                    android:checked="true"
+                    app:chipCornerRadius="14dp" />
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chip_all"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="همه"
-                        android:checked="true" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_expense"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/expense"
+                    app:chipCornerRadius="14dp" />
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chip_expense"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/expense" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_income"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/income"
+                    app:chipCornerRadius="14dp" />
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chip_income"
-                        style="@style/Widget.Material3.Chip.Filter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/income" />
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_filter"
+                    style="@style/Widget.Material3.Chip.Assist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="فیلتر پیشرفته"
+                    app:chipIcon="@drawable/ic_filter"
+                    app:chipCornerRadius="14dp" />
 
-                    <com.google.android.material.chip.Chip
-                        android:id="@+id/chip_filter"
-                        style="@style/Widget.Material3.Chip.Assist"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="فیلتر پیشرفته"
-                        app:chipIcon="@drawable/ic_filter" />
+            </com.google.android.material.chip.ChipGroup>
 
-                </com.google.android.material.chip.ChipGroup>
-
-            </HorizontalScrollView>
-
-        </com.google.android.material.card.MaterialCardView>
+        </HorizontalScrollView>
 
         <!-- لیست تراکنش‌ها -->
         <androidx.recyclerview.widget.RecyclerView
@@ -74,7 +73,8 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:clipToPadding="false"
-            android:padding="16dp" />
+            android:padding="20dp"
+            android:paddingBottom="88dp" />
 
         <!-- حالت خالی -->
         <LinearLayout
@@ -87,17 +87,18 @@
             android:visibility="gone">
 
             <ImageView
-                android:layout_width="72dp"
-                android:layout_height="72dp"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 android:src="@drawable/ic_analytics_large"
-                app:tint="?attr/colorOutline" />
+                android:alpha="0.4"
+                app:tint="?attr/colorOnSurfaceVariant" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="20dp"
                 android:text="@string/no_transactions"
-                android:textSize="18sp"
+                android:textSize="17sp"
                 android:textStyle="bold"
                 android:textColor="?attr/colorOnSurface" />
 
@@ -107,6 +108,7 @@
                 android:layout_marginTop="8dp"
                 android:text="@string/add_first_transaction"
                 android:textSize="14sp"
+                android:gravity="center"
                 android:textColor="?attr/colorOnSurfaceVariant" />
 
         </LinearLayout>
@@ -119,7 +121,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|start"
-        android:layout_margin="16dp"
+        android:layout_margin="20dp"
         android:src="@drawable/ic_add"
         android:contentDescription="@string/add_transaction" />
 

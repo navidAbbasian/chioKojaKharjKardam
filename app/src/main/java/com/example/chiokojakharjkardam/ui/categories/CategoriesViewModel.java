@@ -37,5 +37,9 @@ public class CategoriesViewModel extends AndroidViewModel {
     public void deleteCategory(Category category) {
         repository.delete(category);
     }
+
+    public void getTransactionCount(long categoryId, CategoryRepository.OnTransactionCountListener listener) {
+        repository.getTransactionCount(categoryId, listener);
+    }
 }
 

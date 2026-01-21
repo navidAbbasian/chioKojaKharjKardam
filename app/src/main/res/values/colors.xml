@@ -1,39 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary Colors -->
-    <color name="primary">#2196F3</color>
-    <color name="primary_container">#BBDEFB</color>
-    <color name="on_primary">#FFFFFF</color>
-    <color name="on_primary_container">#1565C0</color>
+    <!-- Modern 2026 Color Palette - Light Theme -->
 
-    <!-- Secondary Colors -->
-    <color name="secondary">#4CAF50</color>
-    <color name="secondary_container">#C8E6C9</color>
+    <!-- Primary Colors - Soft Sage Green -->
+    <color name="primary">#3D7A5F</color>
+    <color name="primary_light">#5A9B7A</color>
+    <color name="primary_dark">#2A5A43</color>
+    <color name="primary_container">#D8F0E3</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="on_primary_container">#1A4231</color>
+
+    <!-- Secondary Colors - Warm Coral -->
+    <color name="secondary">#E07A5F</color>
+    <color name="secondary_container">#FFE4DC</color>
     <color name="on_secondary">#FFFFFF</color>
+    <color name="on_secondary_container">#5C2A1D</color>
+
+    <!-- Tertiary Colors - Soft Lavender -->
+    <color name="tertiary">#8B7EC8</color>
+    <color name="tertiary_container">#EDE8FF</color>
+    <color name="on_tertiary">#FFFFFF</color>
 
     <!-- Error Colors -->
-    <color name="error">#F44336</color>
+    <color name="error">#E35555</color>
+    <color name="error_container">#FFE5E5</color>
     <color name="on_error">#FFFFFF</color>
+    <color name="on_error_container">#5C1A1A</color>
 
-    <!-- Surface Colors -->
-    <color name="surface">#FAFAFA</color>
-    <color name="on_surface">#212121</color>
-    <color name="surface_variant">#EEEEEE</color>
-    <color name="on_surface_variant">#757575</color>
+    <!-- Surface Colors - Clean & Warm -->
+    <color name="surface">#FAFAF8</color>
+    <color name="surface_dim">#F0EFED</color>
+    <color name="surface_bright">#FFFFFF</color>
+    <color name="surface_container_lowest">#FFFFFF</color>
+    <color name="surface_container_low">#F8F7F5</color>
+    <color name="surface_container">#F3F2F0</color>
+    <color name="surface_container_high">#EDECE9</color>
+    <color name="surface_container_highest">#E7E6E3</color>
+    <color name="on_surface">#1C1B1A</color>
+    <color name="surface_variant">#E8E5E0</color>
+    <color name="on_surface_variant">#4A4846</color>
+    <color name="outline">#7C7A77</color>
+    <color name="outline_variant">#CCC9C5</color>
 
-    <!-- Other Colors -->
-    <color name="expense_color">#F44336</color>
-    <color name="income_color">#4CAF50</color>
+    <!-- Expense & Income - Modern Soft Tones -->
+    <color name="expense_color">#E35555</color>
+    <color name="expense_container">#FFE5E5</color>
+    <color name="income_color">#3D9970</color>
+    <color name="income_container">#D5F5E5</color>
 
-    <!-- Dashboard Card Colors -->
-    <color name="dashboard_card_bg">#1A237E</color>
+    <!-- Dashboard Card - Gradient Starting Color -->
+    <color name="dashboard_card_bg">#2A5A43</color>
+    <color name="dashboard_card_end">#3D7A5F</color>
     <color name="on_dashboard_card">#FFFFFF</color>
+    <color name="dashboard_expense_accent">#FFB8B8</color>
+    <color name="dashboard_income_accent">#B8F0D4</color>
 
     <!-- Bill Paid Badge -->
-    <color name="paid_badge_bg">#388E3C</color>
+    <color name="paid_badge_bg">#3D9970</color>
     <color name="on_paid_badge">#FFFFFF</color>
+    <color name="unpaid_badge_bg">#E07A5F</color>
 
-    <!-- Legacy colors -->
+    <!-- Card Colors - Modern Bank Card Palette -->
+    <color name="card_gradient_start">#2D3142</color>
+    <color name="card_gradient_end">#4A5568</color>
+
+    <!-- Accent Colors for UI Elements -->
+    <color name="accent_blue">#5B9BD5</color>
+    <color name="accent_purple">#8B7EC8</color>
+    <color name="accent_orange">#F0A868</color>
+    <color name="accent_pink">#E8A0BF</color>
+    <color name="accent_teal">#5BBFBA</color>
+
+    <!-- Scrim & Overlay -->
+    <color name="scrim">#1C1B1A</color>
+    <color name="scrim_light">#331C1B1A</color>
+
+    <!-- Legacy colors - keeping for compatibility -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>

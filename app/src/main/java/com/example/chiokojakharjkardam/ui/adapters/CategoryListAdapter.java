@@ -37,7 +37,7 @@ public class CategoryListAdapter extends ListAdapter<Category, CategoryListAdapt
         @Override
         public boolean areContentsTheSame(@NonNull Category oldItem, @NonNull Category newItem) {
             return oldItem.getName().equals(newItem.getName())
-                    && oldItem.getIcon().equals(newItem.getIcon());
+                    && oldItem.getType() == newItem.getType();
         }
     };
 

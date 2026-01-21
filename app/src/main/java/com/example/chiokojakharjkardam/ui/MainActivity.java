@@ -3,12 +3,11 @@ package com.example.chiokojakharjkardam.ui;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -17,11 +16,13 @@ import androidx.navigation.ui.NavigationUI;
 import com.example.chiokojakharjkardam.R;
 import com.example.chiokojakharjkardam.ui.setup.SetupActivity;
 import com.example.chiokojakharjkardam.utils.Constants;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
 
     private NavController navController;
+    private TextView tvToolbarTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,34 +35,45 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // فعال‌سازی edge-to-edge برای پشتیبانی از notch
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-
         setContentView(R.layout.activity_main);
 
-        // تنظیم padding برای notch
-        setupEdgeToEdge();
-
+        setupToolbar();
         setupNavigation();
     }
 
-    private void setupEdgeToEdge() {
-        View rootView = findViewById(R.id.nav_host_fragment);
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+    private void setupToolbar() {
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        tvToolbarTitle = findViewById(R.id.toolbar_title);
+        setSupportActionBar(toolbar);
 
-        ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, windowInsets) -> {
-            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            // اضافه کردن padding بالا برای notch
+        // مخفی کردن عنوان پیش‌فرض
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
+
+        // تنظیم padding برای notch
+        ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars());
             v.setPadding(v.getPaddingLeft(), insets.top, v.getPaddingRight(), v.getPaddingBottom());
-            return WindowInsetsCompat.CONSUMED;
+            return windowInsets;
         });
 
+        // تنظیم padding برای navigation bar (پایین)
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
         ViewCompat.setOnApplyWindowInsetsListener(bottomNav, (v, windowInsets) -> {
-            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            // اضافه کردن padding پایین برای navigation bar
+            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars());
             v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), insets.bottom);
-            return WindowInsetsCompat.CONSUMED;
+            return windowInsets;
         });
+    }
+
+    /**
+     * تنظیم عنوان toolbar
+     */
+    public void setToolbarTitle(String title) {
+        if (tvToolbarTitle != null) {
+            tvToolbarTitle.setText(title);
+        }
     }
 
     private boolean isFirstRun() {
@@ -78,6 +90,14 @@ public class MainActivity extends AppCompatActivity {
         if (navHostFragment != null) {
             navController = navHostFragment.getNavController();
             NavigationUI.setupWithNavController(bottomNav, navController);
+
+            // تغییر عنوان toolbar با تغییر صفحه
+            navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+                CharSequence label = destination.getLabel();
+                if (label != null && tvToolbarTitle != null) {
+                    tvToolbarTitle.setText(label);
+                }
+            });
 
             // با کلیک روی هر تب، back stack پاک شود و به صفحه اصلی آن تب برگردد
             bottomNav.setOnItemSelectedListener(item -> {

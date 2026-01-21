@@ -17,6 +17,9 @@ public interface BillDao {
     @Insert
     long insert(Bill bill);
 
+    @Insert
+    List<Long> insertAll(List<Bill> bills);
+
     @Update
     void update(Bill bill);
 

@@ -134,15 +134,28 @@ public class TagsFragment extends Fragment {
     }
 
     private void showDeleteConfirmDialog(Tag tag) {
-        new MaterialAlertDialogBuilder(requireContext())
-                .setTitle("حذف تگ")
-                .setMessage("آیا از حذف «" + tag.getName() + "» مطمئن هستید؟")
-                .setPositiveButton("حذف", (dialog, which) -> {
-                    viewModel.deleteTag(tag);
-                    Toast.makeText(requireContext(), "تگ حذف شد", Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton(R.string.cancel, null)
-                .show();
+        // ابتدا تعداد تراکنش‌های مرتبط را دریافت می‌کنیم
+        viewModel.getTransactionCount(tag.getId(), count -> {
+            requireActivity().runOnUiThread(() -> {
+                String message;
+                if (count > 0) {
+                    message = "با حذف تگ «" + tag.getName() + "»، تعداد " + count +
+                            " تراکنش مرتبط با آن نیز حذف خواهد شد و موجودی کارت‌ها بازگردانده می‌شود.\n\nآیا مطمئن هستید؟";
+                } else {
+                    message = "آیا از حذف «" + tag.getName() + "» مطمئن هستید؟";
+                }
+
+                new MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("حذف تگ")
+                        .setMessage(message)
+                        .setPositiveButton("حذف", (dialog, which) -> {
+                            viewModel.deleteTag(tag);
+                            Toast.makeText(requireContext(), "تگ حذف شد", Toast.LENGTH_SHORT).show();
+                        })
+                        .setNegativeButton(R.string.cancel, null)
+                        .show();
+            });
+        });
     }
 }
 

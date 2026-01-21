@@ -110,8 +110,8 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
         // رنگ
         setBackgroundColor(holder.viewColorBg, report.getCategoryColor());
 
-        // آیکون
-        setIcon(holder.ivIcon, report.getCategoryIcon());
+        // آیکون پیش‌فرض
+        holder.ivIcon.setImageResource(R.drawable.ic_folder);
 
         // مخفی کردن تگ
         holder.layoutTags.setVisibility(View.GONE);
@@ -156,8 +156,8 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
         // رنگ دسته‌بندی
         setBackgroundColor(holder.viewColorBg, report.getCategoryColor());
 
-        // آیکون دسته‌بندی
-        setIcon(holder.ivIcon, report.getCategoryIcon());
+        // آیکون پیش‌فرض
+        holder.ivIcon.setImageResource(R.drawable.ic_folder);
 
         // نمایش تگ
         if (report.getTagName() != null && !report.getTagName().isEmpty()) {
@@ -201,17 +201,6 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
         }
     }
 
-    private void setIcon(ImageView imageView, String iconName) {
-        if (iconName != null && !iconName.isEmpty()) {
-            int resId = context.getResources().getIdentifier(
-                    iconName, "drawable", context.getPackageName());
-            if (resId != 0) {
-                imageView.setImageResource(resId);
-                return;
-            }
-        }
-        imageView.setImageResource(R.drawable.ic_folder);
-    }
 
     private int adjustAlpha(int color, float factor) {
         int alpha = Math.round(Color.alpha(color) * factor);
