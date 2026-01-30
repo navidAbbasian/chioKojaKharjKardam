@@ -264,6 +264,62 @@ public class TransactionRepository {
         return transactionDao.getExpenseByTagInRange(tagId, startDate, endDate);
     }
 
+    /**
+     * دریافت تراکنش‌های هزینه در بازه زمانی
+     */
+    public LiveData<List<Transaction>> getExpensesByDateRange(long startDate, long endDate) {
+        return transactionDao.getExpensesByDateRange(startDate, endDate);
+    }
+
+    /**
+     * دریافت تراکنش‌های درآمد در بازه زمانی
+     */
+    public LiveData<List<Transaction>> getIncomesByDateRange(long startDate, long endDate) {
+        return transactionDao.getIncomesByDateRange(startDate, endDate);
+    }
+
+    /**
+     * دریافت تراکنش‌های هزینه یک دسته‌بندی در بازه زمانی
+     */
+    public LiveData<List<Transaction>> getExpensesByCategoryAndDateRange(long categoryId, long startDate, long endDate) {
+        return transactionDao.getExpensesByCategoryAndDateRange(categoryId, startDate, endDate);
+    }
+
+    /**
+     * دریافت تراکنش‌های درآمد یک دسته‌بندی در بازه زمانی
+     */
+    public LiveData<List<Transaction>> getIncomesByCategoryAndDateRange(long categoryId, long startDate, long endDate) {
+        return transactionDao.getIncomesByCategoryAndDateRange(categoryId, startDate, endDate);
+    }
+
+    /**
+     * دریافت تراکنش‌های هزینه یک تگ در بازه زمانی
+     */
+    public LiveData<List<Transaction>> getExpensesByTagAndDateRange(long tagId, long startDate, long endDate) {
+        return transactionDao.getExpensesByTagAndDateRange(tagId, startDate, endDate);
+    }
+
+    /**
+     * دریافت تراکنش‌های درآمد یک تگ در بازه زمانی
+     */
+    public LiveData<List<Transaction>> getIncomesByTagAndDateRange(long tagId, long startDate, long endDate) {
+        return transactionDao.getIncomesByTagAndDateRange(tagId, startDate, endDate);
+    }
+
+    /**
+     * دریافت تراکنش‌های هزینه یک دسته‌بندی و تگ در بازه زمانی
+     */
+    public LiveData<List<Transaction>> getExpensesByCategoryAndTagAndDateRange(long categoryId, long tagId, long startDate, long endDate) {
+        return transactionDao.getExpensesByCategoryAndTagAndDateRange(categoryId, tagId, startDate, endDate);
+    }
+
+    /**
+     * دریافت تراکنش‌های درآمد یک دسته‌بندی و تگ در بازه زمانی
+     */
+    public LiveData<List<Transaction>> getIncomesByCategoryAndTagAndDateRange(long categoryId, long tagId, long startDate, long endDate) {
+        return transactionDao.getIncomesByCategoryAndTagAndDateRange(categoryId, tagId, startDate, endDate);
+    }
+
     public interface OnTransactionInsertedListener {
         void onTransactionInserted(long transactionId);
     }

@@ -11,6 +11,7 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.chiokojakharjkardam.data.database.entity.CategoryReport;
 import com.example.chiokojakharjkardam.data.database.entity.CombinedReport;
 import com.example.chiokojakharjkardam.data.database.entity.TagReport;
+import com.example.chiokojakharjkardam.data.database.entity.Transaction;
 import com.example.chiokojakharjkardam.data.repository.TransactionRepository;
 
 import java.util.Calendar;
@@ -38,13 +39,19 @@ public class ReportsViewModel extends AndroidViewModel {
     private final MutableLiveData<Long> startDate = new MutableLiveData<>();
     private final MutableLiveData<Long> endDate = new MutableLiveData<>();
 
+    // فیلترهای انتخابی برای نمایش تراکنش‌ها
+    private final MutableLiveData<Long> selectedCategoryId = new MutableLiveData<>(-1L);
+    private final MutableLiveData<Long> selectedTagId = new MutableLiveData<>(-1L);
+
     private final MediatorLiveData<List<CategoryReport>> categoryReports = new MediatorLiveData<>();
     private final MediatorLiveData<List<TagReport>> tagReports = new MediatorLiveData<>();
     private final MediatorLiveData<List<CombinedReport>> combinedReports = new MediatorLiveData<>();
+    private final MediatorLiveData<List<Transaction>> filteredTransactions = new MediatorLiveData<>();
 
     private LiveData<List<CategoryReport>> currentCategorySource;
     private LiveData<List<TagReport>> currentTagSource;
     private LiveData<List<CombinedReport>> currentCombinedSource;
+    private LiveData<List<Transaction>> currentTransactionsSource;
 
     public ReportsViewModel(@NonNull Application application) {
         super(application);
@@ -150,6 +157,12 @@ public class ReportsViewModel extends AndroidViewModel {
             return;
         }
 
+        // پاک کردن فیلترهای انتخابی وقتی گروه‌بندی یا فیلتر اصلی تغییر می‌کنه
+        // (این کار فقط وقتی گزارش‌ها refresh می‌شن انجام می‌شه، نه وقتی فیلتر انتخاب می‌شه)
+
+        // به‌روزرسانی لیست تراکنش‌ها با فیلترهای انتخابی
+        refreshTransactions(start, end, type, group);
+
         switch (group) {
             case GROUP_BY_CATEGORY:
                 refreshCategoryReports(start, end, type);
@@ -161,6 +174,50 @@ public class ReportsViewModel extends AndroidViewModel {
                 refreshCombinedReports(start, end, type);
                 break;
         }
+    }
+
+    private void refreshTransactions(long start, long end, int type, int group) {
+        if (currentTransactionsSource != null) {
+            filteredTransactions.removeSource(currentTransactionsSource);
+        }
+
+        Long catId = selectedCategoryId.getValue();
+        Long tagId = selectedTagId.getValue();
+
+        boolean hasCategoryFilter = catId != null && catId > 0;
+        boolean hasTagFilter = tagId != null && tagId > 0;
+
+        if (type == TRANSACTION_TYPE_EXPENSE) {
+            if (group == GROUP_BY_COMBINED && hasCategoryFilter && hasTagFilter) {
+                // فیلتر ترکیبی
+                currentTransactionsSource = repository.getExpensesByCategoryAndTagAndDateRange(catId, tagId, start, end);
+            } else if (hasCategoryFilter) {
+                // فیلتر بر اساس دسته‌بندی
+                currentTransactionsSource = repository.getExpensesByCategoryAndDateRange(catId, start, end);
+            } else if (hasTagFilter) {
+                // فیلتر بر اساس تگ
+                currentTransactionsSource = repository.getExpensesByTagAndDateRange(tagId, start, end);
+            } else {
+                // بدون فیلتر - همه تراکنش‌ها
+                currentTransactionsSource = repository.getExpensesByDateRange(start, end);
+            }
+        } else {
+            if (group == GROUP_BY_COMBINED && hasCategoryFilter && hasTagFilter) {
+                // فیلتر ترکیبی
+                currentTransactionsSource = repository.getIncomesByCategoryAndTagAndDateRange(catId, tagId, start, end);
+            } else if (hasCategoryFilter) {
+                // فیلتر بر اساس دسته‌بندی
+                currentTransactionsSource = repository.getIncomesByCategoryAndDateRange(catId, start, end);
+            } else if (hasTagFilter) {
+                // فیلتر بر اساس تگ
+                currentTransactionsSource = repository.getIncomesByTagAndDateRange(tagId, start, end);
+            } else {
+                // بدون فیلتر - همه تراکنش‌ها
+                currentTransactionsSource = repository.getIncomesByDateRange(start, end);
+            }
+        }
+
+        filteredTransactions.addSource(currentTransactionsSource, filteredTransactions::setValue);
     }
 
     private void refreshCategoryReports(long start, long end, int type) {
@@ -236,6 +293,48 @@ public class ReportsViewModel extends AndroidViewModel {
 
     public LiveData<List<CombinedReport>> getCombinedReports() {
         return combinedReports;
+    }
+
+    public LiveData<List<Transaction>> getFilteredTransactions() {
+        return filteredTransactions;
+    }
+
+    // متدهای تنظیم فیلتر برای نمایش تراکنش‌ها
+    public void setCategoryFilter(long categoryId) {
+        selectedCategoryId.setValue(categoryId);
+        selectedTagId.setValue(-1L); // پاک کردن فیلتر تگ
+        refreshTransactionsOnly();
+    }
+
+    public void setTagFilter(long tagId) {
+        selectedTagId.setValue(tagId);
+        selectedCategoryId.setValue(-1L); // پاک کردن فیلتر دسته‌بندی
+        refreshTransactionsOnly();
+    }
+
+    public void setCombinedFilter(long categoryId, long tagId) {
+        selectedCategoryId.setValue(categoryId);
+        selectedTagId.setValue(tagId);
+        refreshTransactionsOnly();
+    }
+
+    public void clearTransactionFilter() {
+        selectedCategoryId.setValue(-1L);
+        selectedTagId.setValue(-1L);
+        refreshTransactionsOnly();
+    }
+
+    private void refreshTransactionsOnly() {
+        Long start = startDate.getValue();
+        Long end = endDate.getValue();
+        Integer type = transactionType.getValue();
+        Integer group = groupBy.getValue();
+
+        if (start == null || end == null || type == null || group == null) {
+            return;
+        }
+
+        refreshTransactions(start, end, type, group);
     }
 }
 

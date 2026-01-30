@@ -254,5 +254,77 @@ public class PersianDateUtils {
     public static long[] getCurrentMonthRange() {
         return new long[]{getStartOfCurrentMonth(), getEndOfCurrentMonth()};
     }
+
+    /**
+     * تعداد روزهای یک ماه شمسی
+     */
+    public static int getDaysInJalaliMonth(int year, int month) {
+        if (month <= 6) {
+            return 31;
+        } else if (month <= 11) {
+            return 30;
+        } else {
+            // اسفند - بررسی کبیسه
+            return isJalaliLeapYear(year) ? 30 : 29;
+        }
+    }
+
+    /**
+     * بررسی سال کبیسه شمسی
+     */
+    public static boolean isJalaliLeapYear(int year) {
+        int[] leapYears = {1, 5, 9, 13, 17, 22, 26, 30};
+        int cycle = year % 33;
+        for (int leapYear : leapYears) {
+            if (cycle == leapYear) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * اضافه کردن ماه به تاریخ شمسی
+     * @param jy سال شمسی
+     * @param jm ماه شمسی
+     * @param jd روز شمسی
+     * @param months تعداد ماه برای اضافه کردن
+     * @return آرایه [سال, ماه, روز] جدید
+     */
+    public static int[] addMonthsToJalali(int jy, int jm, int jd, int months) {
+        int totalMonths = jm + months;
+        int newYear = jy + (totalMonths - 1) / 12;
+        int newMonth = ((totalMonths - 1) % 12) + 1;
+
+        // تنظیم روز به حداکثر روز ماه جدید اگر بیشتر باشد
+        int maxDay = getDaysInJalaliMonth(newYear, newMonth);
+        int newDay = Math.min(jd, maxDay);
+
+        return new int[]{newYear, newMonth, newDay};
+    }
+
+    /**
+     * اضافه کردن سال به تاریخ شمسی
+     * @param jy سال شمسی
+     * @param jm ماه شمسی
+     * @param jd روز شمسی
+     * @param years تعداد سال برای اضافه کردن
+     * @return آرایه [سال, ماه, روز] جدید
+     */
+    public static int[] addYearsToJalali(int jy, int jm, int jd, int years) {
+        int newYear = jy + years;
+        // تنظیم روز به حداکثر روز ماه جدید اگر بیشتر باشد
+        int maxDay = getDaysInJalaliMonth(newYear, jm);
+        int newDay = Math.min(jd, maxDay);
+
+        return new int[]{newYear, jm, newDay};
+    }
+
+    /**
+     * timestamp سی روز آینده
+     */
+    public static long getThirtyDaysFromNow() {
+        return System.currentTimeMillis() + (30L * 24 * 60 * 60 * 1000);
+    }
 }
 

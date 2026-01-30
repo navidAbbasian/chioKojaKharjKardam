@@ -11,15 +11,18 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chiokojakharjkardam.R;
 import com.example.chiokojakharjkardam.ui.adapters.ReportAdapter;
+import com.example.chiokojakharjkardam.ui.adapters.TransactionAdapter;
 import com.example.chiokojakharjkardam.ui.components.PersianDatePickerDialog;
 import com.example.chiokojakharjkardam.utils.PersianDateUtils;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
+import com.google.android.material.card.MaterialCardView;
 
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -28,10 +31,15 @@ public class ReportsFragment extends Fragment {
 
     private ReportsViewModel viewModel;
     private ReportAdapter adapter;
+    private TransactionAdapter transactionAdapter;
     private RecyclerView rvReports;
+    private RecyclerView rvTransactions;
     private LinearLayout layoutEmpty;
+    private LinearLayout layoutEmptyTransactions;
+    private MaterialCardView cardTransactions;
     private TextView tvTotalAmount;
     private TextView tvSelectedRange;
+    private TextView tvTransactionsCount;
     private MaterialButtonToggleGroup toggleDateRange;
     private MaterialButtonToggleGroup toggleGroupBy;
     private MaterialButtonToggleGroup toggleTransactionType;
@@ -61,18 +69,60 @@ public class ReportsFragment extends Fragment {
 
     private void initViews(View view) {
         rvReports = view.findViewById(R.id.rv_reports);
+        rvTransactions = view.findViewById(R.id.rv_transactions);
         layoutEmpty = view.findViewById(R.id.layout_empty);
+        layoutEmptyTransactions = view.findViewById(R.id.layout_empty_transactions);
+        cardTransactions = view.findViewById(R.id.card_transactions);
         tvTotalAmount = view.findViewById(R.id.tv_total_amount);
         tvSelectedRange = view.findViewById(R.id.tv_selected_range);
+        tvTransactionsCount = view.findViewById(R.id.tv_transactions_count);
 
         toggleDateRange = view.findViewById(R.id.toggle_date_range);
         toggleGroupBy = view.findViewById(R.id.toggle_group_by);
         toggleTransactionType = view.findViewById(R.id.toggle_transaction_type);
 
-        // تنظیم RecyclerView
+        // تنظیم RecyclerView گزارش‌ها
         adapter = new ReportAdapter(requireContext());
+        adapter.setOnReportItemClickListener(new ReportAdapter.OnReportItemClickListener() {
+            @Override
+            public void onCategoryClick(long categoryId, String categoryName) {
+                if (categoryId < 0) {
+                    viewModel.clearTransactionFilter();
+                } else {
+                    viewModel.setCategoryFilter(categoryId);
+                }
+            }
+
+            @Override
+            public void onTagClick(long tagId, String tagName) {
+                if (tagId < 0) {
+                    viewModel.clearTransactionFilter();
+                } else {
+                    viewModel.setTagFilter(tagId);
+                }
+            }
+
+            @Override
+            public void onCombinedClick(long categoryId, long tagId, String categoryName, String tagName) {
+                if (categoryId < 0 || tagId < 0) {
+                    viewModel.clearTransactionFilter();
+                } else {
+                    viewModel.setCombinedFilter(categoryId, tagId);
+                }
+            }
+        });
         rvReports.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvReports.setAdapter(adapter);
+
+        // تنظیم RecyclerView تراکنش‌ها
+        transactionAdapter = new TransactionAdapter(transaction -> {
+            Bundle args = new Bundle();
+            args.putLong("transactionId", transaction.getId());
+            Navigation.findNavController(requireView())
+                    .navigate(R.id.transactionDetailFragment, args);
+        });
+        rvTransactions.setLayoutManager(new LinearLayoutManager(requireContext()));
+        rvTransactions.setAdapter(transactionAdapter);
 
         // تنظیم پیش‌فرض‌ها
         toggleDateRange.check(R.id.btn_this_month);
@@ -84,6 +134,8 @@ public class ReportsFragment extends Fragment {
         // انتخاب بازه زمانی
         toggleDateRange.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (isChecked) {
+                adapter.clearSelection();
+                viewModel.clearTransactionFilter();
                 if (checkedId == R.id.btn_this_month) {
                     viewModel.setDateRange(ReportsViewModel.DATE_RANGE_THIS_MONTH);
                 } else if (checkedId == R.id.btn_last_3_months) {
@@ -101,6 +153,8 @@ public class ReportsFragment extends Fragment {
         // انتخاب نوع گروه‌بندی
         toggleGroupBy.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (isChecked) {
+                adapter.clearSelection();
+                viewModel.clearTransactionFilter();
                 if (checkedId == R.id.btn_by_category) {
                     viewModel.setGroupBy(ReportsViewModel.GROUP_BY_CATEGORY);
                 } else if (checkedId == R.id.btn_by_tag) {
@@ -114,6 +168,8 @@ public class ReportsFragment extends Fragment {
         // انتخاب نوع تراکنش
         toggleTransactionType.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (isChecked) {
+                adapter.clearSelection();
+                viewModel.clearTransactionFilter();
                 if (checkedId == R.id.btn_expense_type) {
                     viewModel.setTransactionType(ReportsViewModel.TRANSACTION_TYPE_EXPENSE);
                 } else if (checkedId == R.id.btn_income_type) {
@@ -161,6 +217,21 @@ public class ReportsFragment extends Fragment {
         // گوش دادن به نوع گروه‌بندی برای تعویض داده‌ها
         viewModel.getGroupBy().observe(getViewLifecycleOwner(), groupBy -> {
             observeReportsForGroupBy(groupBy);
+        });
+
+        // گوش دادن به لیست تراکنش‌ها
+        viewModel.getFilteredTransactions().observe(getViewLifecycleOwner(), transactions -> {
+            if (transactions != null && !transactions.isEmpty()) {
+                transactionAdapter.submitList(transactions);
+                rvTransactions.setVisibility(View.VISIBLE);
+                layoutEmptyTransactions.setVisibility(View.GONE);
+                cardTransactions.setVisibility(View.VISIBLE);
+                tvTransactionsCount.setText(getString(R.string.transaction_count_format, transactions.size()));
+            } else {
+                rvTransactions.setVisibility(View.GONE);
+                layoutEmptyTransactions.setVisibility(View.VISIBLE);
+                tvTransactionsCount.setText("");
+            }
         });
     }
 

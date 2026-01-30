@@ -27,7 +27,6 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 public class AddBillFragment extends Fragment {
@@ -261,43 +260,54 @@ public class AddBillFragment extends Fragment {
     private List<Bill> createRecurringBillsFromDay(String title, long amount, int dayOfMonth,
                                                     int recurringType, int notifyBefore, int count) {
         List<Bill> bills = new ArrayList<>();
-        Calendar calendar = Calendar.getInstance();
 
-        // شروع از ماه جاری با روز مشخص شده
-        int maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-        calendar.set(Calendar.DAY_OF_MONTH, Math.min(dayOfMonth, maxDay));
-        calendar.set(Calendar.HOUR_OF_DAY, 12);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
+        // دریافت تاریخ شمسی امروز
+        int[] todayJalali = PersianDateUtils.getTodayJalali();
+        int currentYear = todayJalali[0];
+        int currentMonth = todayJalali[1];
+
+        // تنظیم روز به حداکثر روز ماه اگر بیشتر باشد
+        int maxDayInMonth = PersianDateUtils.getDaysInJalaliMonth(currentYear, currentMonth);
+        int actualDay = Math.min(dayOfMonth, maxDayInMonth);
+
+        // محاسبه timestamp برای روز مشخص شده در ماه جاری
+        long dueDate = PersianDateUtils.jalaliToTimestamp(currentYear, currentMonth, actualDay);
 
         // اگر روز گذشته، از ماه بعد شروع کن
-        if (calendar.getTimeInMillis() < System.currentTimeMillis()) {
+        if (dueDate < System.currentTimeMillis()) {
+            int[] nextDate;
             if (recurringType == Bill.RECURRING_MONTHLY) {
-                calendar.add(Calendar.MONTH, 1);
-                maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-                calendar.set(Calendar.DAY_OF_MONTH, Math.min(dayOfMonth, maxDay));
-            } else if (recurringType == Bill.RECURRING_YEARLY) {
-                calendar.add(Calendar.YEAR, 1);
-                maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-                calendar.set(Calendar.DAY_OF_MONTH, Math.min(dayOfMonth, maxDay));
+                nextDate = PersianDateUtils.addMonthsToJalali(currentYear, currentMonth, dayOfMonth, 1);
+            } else {
+                nextDate = PersianDateUtils.addYearsToJalali(currentYear, currentMonth, dayOfMonth, 1);
             }
+            currentYear = nextDate[0];
+            currentMonth = nextDate[1];
+            actualDay = nextDate[2];
         }
 
         for (int i = 0; i < count; i++) {
-            Bill bill = new Bill(title, amount, calendar.getTimeInMillis(), true, recurringType, notifyBefore);
+            // محاسبه روز واقعی برای این ماه (با در نظر گرفتن حداکثر روزهای ماه)
+            int maxDayInCurrentMonth = PersianDateUtils.getDaysInJalaliMonth(currentYear, currentMonth);
+            actualDay = Math.min(dayOfMonth, maxDayInCurrentMonth);
+
+            // محاسبه timestamp برای تاریخ فعلی
+            dueDate = PersianDateUtils.jalaliToTimestamp(currentYear, currentMonth, actualDay);
+
+            Bill bill = new Bill(title, amount, dueDate, true, recurringType, notifyBefore);
             bills.add(bill);
 
-            // محاسبه تاریخ سررسید بعدی
+            // محاسبه تاریخ سررسید بعدی (فقط سال و ماه)
             if (recurringType == Bill.RECURRING_MONTHLY) {
-                calendar.add(Calendar.MONTH, 1);
-                // تنظیم روز ماه به روز اصلی
-                maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-                calendar.set(Calendar.DAY_OF_MONTH, Math.min(dayOfMonth, maxDay));
+                currentMonth++;
+                if (currentMonth > 12) {
+                    currentMonth = 1;
+                    currentYear++;
+                }
             } else if (recurringType == Bill.RECURRING_YEARLY) {
-                calendar.add(Calendar.YEAR, 1);
-                maxDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
-                calendar.set(Calendar.DAY_OF_MONTH, Math.min(dayOfMonth, maxDay));
+                currentYear++;
+            } else {
+                break;
             }
         }
 

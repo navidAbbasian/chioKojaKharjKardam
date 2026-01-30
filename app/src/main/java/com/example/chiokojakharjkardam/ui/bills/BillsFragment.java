@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.chiokojakharjkardam.R;
 import com.example.chiokojakharjkardam.ui.adapters.BillAdapter;
 import com.example.chiokojakharjkardam.utils.PersianDateUtils;
+import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 
@@ -34,6 +35,7 @@ public class BillsFragment extends Fragment {
     private TextView tvThisMonthTitle;
     private TextView tvFutureBillsCount;
     private TabLayout tabLayout;
+    private MaterialButtonToggleGroup toggleViewMode;
     private BillAdapter adapter;
     private BillAdapter futureBillsAdapter;
     private boolean isFutureBillsExpanded = false;
@@ -67,6 +69,10 @@ public class BillsFragment extends Fragment {
         tvThisMonthTitle = view.findViewById(R.id.tv_this_month_title);
         tvFutureBillsCount = view.findViewById(R.id.tv_future_bills_count);
         tabLayout = view.findViewById(R.id.tab_layout);
+        toggleViewMode = view.findViewById(R.id.toggle_view_mode);
+
+        // تنظیم پیش‌فرض روی ماه جاری
+        toggleViewMode.check(R.id.btn_current_month);
     }
 
     private void setupRecyclerView() {
@@ -105,8 +111,19 @@ public class BillsFragment extends Fragment {
 
     private void setupListeners(View view) {
         FloatingActionButton fabAdd = view.findViewById(R.id.fab_add_bill);
-        fabAdd.setOnClickListener(v -> {
-            Navigation.findNavController(v).navigate(R.id.addBillFragment);
+        fabAdd.setOnClickListener(v ->
+            Navigation.findNavController(v).navigate(R.id.addBillFragment)
+        );
+
+        // فیلتر بازه زمانی
+        toggleViewMode.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (isChecked) {
+                if (checkedId == R.id.btn_current_month) {
+                    viewModel.setViewMode(BillsViewModel.VIEW_MODE_CURRENT_MONTH);
+                } else if (checkedId == R.id.btn_next_30_days) {
+                    viewModel.setViewMode(BillsViewModel.VIEW_MODE_NEXT_30_DAYS);
+                }
+            }
         });
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {

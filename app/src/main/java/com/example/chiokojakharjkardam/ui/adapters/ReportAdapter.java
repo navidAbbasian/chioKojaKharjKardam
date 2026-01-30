@@ -30,18 +30,39 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
     public static final int TYPE_TAG = 1;
     public static final int TYPE_COMBINED = 2;
 
+    public interface OnReportItemClickListener {
+        void onCategoryClick(long categoryId, String categoryName);
+        void onTagClick(long tagId, String tagName);
+        void onCombinedClick(long categoryId, long tagId, String categoryName, String tagName);
+    }
+
     private final Context context;
     private final List<Object> items = new ArrayList<>();
     private int currentType = TYPE_CATEGORY;
     private final NumberFormat numberFormat;
+    private OnReportItemClickListener listener;
+    private int selectedPosition = -1;
 
     public ReportAdapter(Context context) {
         this.context = context;
         this.numberFormat = NumberFormat.getNumberInstance(new Locale("fa", "IR"));
     }
 
+    public void setOnReportItemClickListener(OnReportItemClickListener listener) {
+        this.listener = listener;
+    }
+
+    public void clearSelection() {
+        int oldPosition = selectedPosition;
+        selectedPosition = -1;
+        if (oldPosition >= 0) {
+            notifyItemChanged(oldPosition);
+        }
+    }
+
     public void setCategoryReports(List<CategoryReport> reports) {
         items.clear();
+        selectedPosition = -1;
         if (reports != null) {
             items.addAll(reports);
         }
@@ -51,6 +72,7 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
 
     public void setTagReports(List<TagReport> reports) {
         items.clear();
+        selectedPosition = -1;
         if (reports != null) {
             items.addAll(reports);
         }
@@ -60,6 +82,7 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
 
     public void setCombinedReports(List<CombinedReport> reports) {
         items.clear();
+        selectedPosition = -1;
         if (reports != null) {
             items.addAll(reports);
         }
@@ -79,6 +102,11 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
     public void onBindViewHolder(@NonNull ReportViewHolder holder, int position) {
         Object item = items.get(position);
 
+        // تنظیم وضعیت انتخاب شده
+        boolean isSelected = position == selectedPosition;
+        holder.itemView.setSelected(isSelected);
+        holder.itemView.setAlpha(isSelected ? 1.0f : (selectedPosition >= 0 ? 0.6f : 1.0f));
+
         switch (currentType) {
             case TYPE_CATEGORY:
                 bindCategoryReport(holder, (CategoryReport) item);
@@ -90,6 +118,58 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
                 bindCombinedReport(holder, (CombinedReport) item);
                 break;
         }
+
+        // هندل کردن کلیک
+        holder.itemView.setOnClickListener(v -> {
+            int adapterPosition = holder.getAdapterPosition();
+            if (adapterPosition == RecyclerView.NO_POSITION) return;
+
+            int oldPosition = selectedPosition;
+            if (selectedPosition == adapterPosition) {
+                // اگر همین آیتم انتخاب شده، لغو انتخاب کن
+                selectedPosition = -1;
+                notifyItemChanged(adapterPosition);
+                if (listener != null) {
+                    // برگشت به حالت عادی (همه تراکنش‌ها)
+                    switch (currentType) {
+                        case TYPE_CATEGORY:
+                            listener.onCategoryClick(-1, null);
+                            break;
+                        case TYPE_TAG:
+                            listener.onTagClick(-1, null);
+                            break;
+                        case TYPE_COMBINED:
+                            listener.onCombinedClick(-1, -1, null, null);
+                            break;
+                    }
+                }
+            } else {
+                // انتخاب آیتم جدید
+                selectedPosition = adapterPosition;
+                if (oldPosition >= 0) {
+                    notifyItemChanged(oldPosition);
+                }
+                notifyItemChanged(adapterPosition);
+
+                if (listener != null) {
+                    switch (currentType) {
+                        case TYPE_CATEGORY:
+                            CategoryReport catReport = (CategoryReport) items.get(adapterPosition);
+                            listener.onCategoryClick(catReport.getCategoryId(), catReport.getCategoryName());
+                            break;
+                        case TYPE_TAG:
+                            TagReport tagReport = (TagReport) items.get(adapterPosition);
+                            listener.onTagClick(tagReport.getTagId(), tagReport.getTagName());
+                            break;
+                        case TYPE_COMBINED:
+                            CombinedReport combReport = (CombinedReport) items.get(adapterPosition);
+                            listener.onCombinedClick(combReport.getCategoryId(), combReport.getTagId(),
+                                    combReport.getCategoryName(), combReport.getTagName());
+                            break;
+                    }
+                }
+            }
+        });
     }
 
     private void bindCategoryReport(ReportViewHolder holder, CategoryReport report) {

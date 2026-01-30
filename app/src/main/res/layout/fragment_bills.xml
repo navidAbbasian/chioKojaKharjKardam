@@ -12,6 +12,34 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <!-- فیلتر بازه زمانی -->
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/toggle_view_mode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="8dp"
+            app:singleSelection="true"
+            app:selectionRequired="true">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_current_month"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/current_persian_month" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_next_30_days"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/next_30_days" />
+
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
         <!-- تب‌ها -->
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tab_layout"

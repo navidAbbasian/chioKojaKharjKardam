@@ -68,7 +68,7 @@ public interface TransactionDao {
      * گزارش مجموع هزینه‌ها بر اساس دسته‌بندی در بازه زمانی
      */
     @Query("SELECT t.categoryId as categoryId, c.name as categoryName, c.color as categoryColor, " +
-            "c.icon as categoryIcon, SUM(t.amount) as totalAmount, COUNT(*) as transactionCount " +
+            "c.icon as categoryIcon, SUM(t.amount) as totalAmount, COUNT(DISTINCT t.id) as transactionCount " +
             "FROM transactions t " +
             "LEFT JOIN categories c ON t.categoryId = c.id " +
             "WHERE t.type = 0 AND t.date BETWEEN :startDate AND :endDate " +
@@ -80,7 +80,7 @@ public interface TransactionDao {
      * گزارش مجموع درآمدها بر اساس دسته‌بندی در بازه زمانی
      */
     @Query("SELECT t.categoryId as categoryId, c.name as categoryName, c.color as categoryColor, " +
-            "c.icon as categoryIcon, SUM(t.amount) as totalAmount, COUNT(*) as transactionCount " +
+            "c.icon as categoryIcon, SUM(t.amount) as totalAmount, COUNT(DISTINCT t.id) as transactionCount " +
             "FROM transactions t " +
             "LEFT JOIN categories c ON t.categoryId = c.id " +
             "WHERE t.type = 1 AND t.date BETWEEN :startDate AND :endDate " +
@@ -186,5 +186,61 @@ public interface TransactionDao {
             "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
             "WHERE tt.tagId = :tagId")
     int getTransactionCountByTag(long tagId);
+
+    /**
+     * دریافت تراکنش‌های هزینه در بازه زمانی مشخص
+     */
+    @Query("SELECT * FROM transactions WHERE type = 0 AND date BETWEEN :startDate AND :endDate ORDER BY date DESC")
+    LiveData<List<Transaction>> getExpensesByDateRange(long startDate, long endDate);
+
+    /**
+     * دریافت تراکنش‌های درآمد در بازه زمانی مشخص
+     */
+    @Query("SELECT * FROM transactions WHERE type = 1 AND date BETWEEN :startDate AND :endDate ORDER BY date DESC")
+    LiveData<List<Transaction>> getIncomesByDateRange(long startDate, long endDate);
+
+    /**
+     * دریافت تراکنش‌های هزینه یک دسته‌بندی در بازه زمانی
+     */
+    @Query("SELECT * FROM transactions WHERE type = 0 AND categoryId = :categoryId AND date BETWEEN :startDate AND :endDate ORDER BY date DESC")
+    LiveData<List<Transaction>> getExpensesByCategoryAndDateRange(long categoryId, long startDate, long endDate);
+
+    /**
+     * دریافت تراکنش‌های درآمد یک دسته‌بندی در بازه زمانی
+     */
+    @Query("SELECT * FROM transactions WHERE type = 1 AND categoryId = :categoryId AND date BETWEEN :startDate AND :endDate ORDER BY date DESC")
+    LiveData<List<Transaction>> getIncomesByCategoryAndDateRange(long categoryId, long startDate, long endDate);
+
+    /**
+     * دریافت تراکنش‌های هزینه یک تگ در بازه زمانی
+     */
+    @Query("SELECT t.* FROM transactions t " +
+            "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
+            "WHERE t.type = 0 AND tt.tagId = :tagId AND t.date BETWEEN :startDate AND :endDate ORDER BY t.date DESC")
+    LiveData<List<Transaction>> getExpensesByTagAndDateRange(long tagId, long startDate, long endDate);
+
+    /**
+     * دریافت تراکنش‌های درآمد یک تگ در بازه زمانی
+     */
+    @Query("SELECT t.* FROM transactions t " +
+            "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
+            "WHERE t.type = 1 AND tt.tagId = :tagId AND t.date BETWEEN :startDate AND :endDate ORDER BY t.date DESC")
+    LiveData<List<Transaction>> getIncomesByTagAndDateRange(long tagId, long startDate, long endDate);
+
+    /**
+     * دریافت تراکنش‌های هزینه یک دسته‌بندی و تگ در بازه زمانی
+     */
+    @Query("SELECT t.* FROM transactions t " +
+            "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
+            "WHERE t.type = 0 AND t.categoryId = :categoryId AND tt.tagId = :tagId AND t.date BETWEEN :startDate AND :endDate ORDER BY t.date DESC")
+    LiveData<List<Transaction>> getExpensesByCategoryAndTagAndDateRange(long categoryId, long tagId, long startDate, long endDate);
+
+    /**
+     * دریافت تراکنش‌های درآمد یک دسته‌بندی و تگ در بازه زمانی
+     */
+    @Query("SELECT t.* FROM transactions t " +
+            "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
+            "WHERE t.type = 1 AND t.categoryId = :categoryId AND tt.tagId = :tagId AND t.date BETWEEN :startDate AND :endDate ORDER BY t.date DESC")
+    LiveData<List<Transaction>> getIncomesByCategoryAndTagAndDateRange(long categoryId, long tagId, long startDate, long endDate);
 }
 

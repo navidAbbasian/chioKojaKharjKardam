@@ -161,4 +161,11 @@
     <string name="select_start_date">انتخاب تاریخ شروع</string>
     <string name="select_end_date">انتخاب تاریخ پایان</string>
     <string name="no_category">بدون دسته‌بندی</string>
+
+    <!-- Bills Filter -->
+    <string name="current_persian_month">ماه جاری</string>
+    <string name="next_30_days">۳۰ روز آینده</string>
+
+    <!-- Reports Transactions -->
+    <string name="transactions_list">لیست تراکنش‌ها</string>
 </resources>
