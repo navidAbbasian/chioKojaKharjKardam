@@ -320,6 +320,27 @@ public class TransactionRepository {
         return transactionDao.getIncomesByCategoryAndTagAndDateRange(categoryId, tagId, startDate, endDate);
     }
 
+    /**
+     * دریافت همه تراکنش‌ها (درآمد+خرج) یک دسته‌بندی در بازه زمانی
+     */
+    public LiveData<List<Transaction>> getAllTransactionsByCategoryAndDateRange(long categoryId, long startDate, long endDate) {
+        return transactionDao.getAllTransactionsByCategoryAndDateRange(categoryId, startDate, endDate);
+    }
+
+    /**
+     * دریافت همه تراکنش‌ها (درآمد+خرج) یک تگ در بازه زمانی
+     */
+    public LiveData<List<Transaction>> getAllTransactionsByTagAndDateRange(long tagId, long startDate, long endDate) {
+        return transactionDao.getAllTransactionsByTagAndDateRange(tagId, startDate, endDate);
+    }
+
+    /**
+     * دریافت همه تراکنش‌ها (درآمد+خرج) یک دسته‌بندی و تگ در بازه زمانی
+     */
+    public LiveData<List<Transaction>> getAllTransactionsByCategoryAndTagAndDateRange(long categoryId, long tagId, long startDate, long endDate) {
+        return transactionDao.getAllTransactionsByCategoryAndTagAndDateRange(categoryId, tagId, startDate, endDate);
+    }
+
     public interface OnTransactionInsertedListener {
         void onTransactionInserted(long transactionId);
     }

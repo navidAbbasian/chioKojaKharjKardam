@@ -23,6 +23,9 @@ public interface MemberDao {
     @Delete
     void delete(Member member);
 
+    @Query("DELETE FROM members")
+    void deleteAll();
+
     @Query("SELECT * FROM members WHERE familyId = :familyId ORDER BY isOwner DESC, createdAt ASC")
     LiveData<List<Member>> getMembersByFamily(long familyId);
 

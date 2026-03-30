@@ -23,6 +23,9 @@ public interface TransferDao {
     @Delete
     void delete(Transfer transfer);
 
+    @Query("DELETE FROM transfers")
+    void deleteAll();
+
     @Query("SELECT * FROM transfers ORDER BY date DESC")
     LiveData<List<Transfer>> getAllTransfers();
 

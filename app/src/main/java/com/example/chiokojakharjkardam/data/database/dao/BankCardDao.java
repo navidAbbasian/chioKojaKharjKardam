@@ -23,6 +23,9 @@ public interface BankCardDao {
     @Delete
     void delete(BankCard bankCard);
 
+    @Query("DELETE FROM bank_cards")
+    void deleteAll();
+
     @Query("SELECT * FROM bank_cards WHERE memberId = :memberId ORDER BY createdAt DESC")
     LiveData<List<BankCard>> getCardsByMember(long memberId);
 

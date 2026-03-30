@@ -26,6 +26,9 @@ public interface BillDao {
     @Delete
     void delete(Bill bill);
 
+    @Query("DELETE FROM bills")
+    void deleteAll();
+
     @Query("SELECT * FROM bills ORDER BY dueDate ASC")
     LiveData<List<Bill>> getAllBills();
 

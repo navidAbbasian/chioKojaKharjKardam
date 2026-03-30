@@ -25,6 +25,9 @@ public interface TransactionTagDao {
     @Query("DELETE FROM transaction_tags WHERE transactionId = :transactionId")
     void deleteByTransaction(long transactionId);
 
+    @Query("DELETE FROM transaction_tags")
+    void deleteAll();
+
     @Query("SELECT tagId FROM transaction_tags WHERE transactionId = :transactionId")
     List<Long> getTagIdsByTransaction(long transactionId);
 

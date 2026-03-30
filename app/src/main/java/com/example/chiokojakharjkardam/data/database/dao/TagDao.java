@@ -23,6 +23,9 @@ public interface TagDao {
     @Delete
     void delete(Tag tag);
 
+    @Query("DELETE FROM tags")
+    void deleteAll();
+
     @Query("SELECT * FROM tags ORDER BY name ASC")
     LiveData<List<Tag>> getAllTags();
 

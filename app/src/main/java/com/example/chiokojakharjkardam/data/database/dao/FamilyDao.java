@@ -31,5 +31,8 @@ public interface FamilyDao {
 
     @Query("SELECT * FROM families")
     LiveData<List<Family>> getAllFamilies();
+
+    @Query("DELETE FROM families")
+    void deleteAll();
 }
 

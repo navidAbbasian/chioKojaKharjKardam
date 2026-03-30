@@ -25,6 +25,7 @@ public class ReportsViewModel extends AndroidViewModel {
 
     public static final int TRANSACTION_TYPE_EXPENSE = 0;
     public static final int TRANSACTION_TYPE_INCOME = 1;
+    public static final int TRANSACTION_TYPE_ALL = 2;
 
     public static final int DATE_RANGE_THIS_MONTH = 0;
     public static final int DATE_RANGE_LAST_3_MONTHS = 1;
@@ -163,6 +164,9 @@ public class ReportsViewModel extends AndroidViewModel {
         // به‌روزرسانی لیست تراکنش‌ها با فیلترهای انتخابی
         refreshTransactions(start, end, type, group);
 
+        // گزارش‌های گروه‌بندی فقط در حالت غیر ALL نمایش داده می‌شوند
+        if (type == TRANSACTION_TYPE_ALL) return;
+
         switch (group) {
             case GROUP_BY_CATEGORY:
                 refreshCategoryReports(start, end, type);
@@ -187,7 +191,18 @@ public class ReportsViewModel extends AndroidViewModel {
         boolean hasCategoryFilter = catId != null && catId > 0;
         boolean hasTagFilter = tagId != null && tagId > 0;
 
-        if (type == TRANSACTION_TYPE_EXPENSE) {
+        if (type == TRANSACTION_TYPE_ALL) {
+            // همه تراکنش‌ها (درآمد + خرج)
+            if (group == GROUP_BY_COMBINED && hasCategoryFilter && hasTagFilter) {
+                currentTransactionsSource = repository.getAllTransactionsByCategoryAndTagAndDateRange(catId, tagId, start, end);
+            } else if (hasCategoryFilter) {
+                currentTransactionsSource = repository.getAllTransactionsByCategoryAndDateRange(catId, start, end);
+            } else if (hasTagFilter) {
+                currentTransactionsSource = repository.getAllTransactionsByTagAndDateRange(tagId, start, end);
+            } else {
+                currentTransactionsSource = repository.getTransactionsByDateRange(start, end);
+            }
+        } else if (type == TRANSACTION_TYPE_EXPENSE) {
             if (group == GROUP_BY_COMBINED && hasCategoryFilter && hasTagFilter) {
                 // فیلتر ترکیبی
                 currentTransactionsSource = repository.getExpensesByCategoryAndTagAndDateRange(catId, tagId, start, end);

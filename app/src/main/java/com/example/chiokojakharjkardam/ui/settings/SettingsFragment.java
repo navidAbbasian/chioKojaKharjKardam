@@ -16,11 +16,11 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
+import com.example.chiokojakharjkardam.ui.MainActivity;
 import com.example.chiokojakharjkardam.R;
 import com.example.chiokojakharjkardam.utils.BackupManager;
 import com.example.chiokojakharjkardam.utils.ThemeManager;
@@ -121,6 +121,9 @@ public class SettingsFragment extends Fragment {
         MaterialCardView cardRestore = view.findViewById(R.id.card_restore);
         cardRestore.setOnClickListener(v -> showRestoreDialog());
 
+        MaterialCardView cardClearData = view.findViewById(R.id.card_clear_data);
+        cardClearData.setOnClickListener(v -> showClearDataDialog());
+
         MaterialCardView cardAbout = view.findViewById(R.id.card_about);
         cardAbout.setOnClickListener(v -> showAboutDialog());
 
@@ -212,6 +215,46 @@ public class SettingsFragment extends Fragment {
                 }
             }
         });
+    }
+
+    private void showClearDataDialog() {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.clear_data_title)
+                .setMessage(getString(R.string.clear_data_warning) + "\n\n" + getString(R.string.clear_data_confirm))
+                .setPositiveButton(R.string.delete, (dialog, which) -> {
+                    viewModel.clearAllData(new SettingsViewModel.ClearDataCallback() {
+                        @Override
+                        public void onSuccess() {
+                            if (isAdded()) {
+                                requireActivity().runOnUiThread(() -> {
+                                    new MaterialAlertDialogBuilder(requireContext())
+                                            .setTitle(R.string.success)
+                                            .setMessage(R.string.clear_data_success)
+                                            .setPositiveButton(R.string.yes, (d, w) -> {
+                                                // راه‌اندازی مجدد برنامه
+                                                Intent intent = new Intent(requireContext(), MainActivity.class);
+                                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                                startActivity(intent);
+                                                requireActivity().finish();
+                                            })
+                                            .setCancelable(false)
+                                            .show();
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            if (isAdded()) {
+                                requireActivity().runOnUiThread(() ->
+                                        Toast.makeText(requireContext(), getString(R.string.clear_data_error), Toast.LENGTH_LONG).show()
+                                );
+                            }
+                        }
+                    });
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
 
     private void showAboutDialog() {

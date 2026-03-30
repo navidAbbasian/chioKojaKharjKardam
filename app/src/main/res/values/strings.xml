@@ -168,4 +168,19 @@
 
     <!-- Reports Transactions -->
     <string name="transactions_list">لیست تراکنش‌ها</string>
+    <string name="all_transactions">همه تراکنش‌ها</string>
+    <string name="all_transactions_desc">نمایش همه تراکنش‌ها بدون فیلتر</string>
+    <string name="export_pdf">دریافت PDF</string>
+    <string name="pdf_export_success">فایل PDF با موفقیت ذخیره شد</string>
+    <string name="pdf_export_error">خطا در ایجاد فایل PDF</string>
+    <string name="report_title">گزارش تراکنش‌ها</string>
+
+    <!-- Clear Data -->
+    <string name="clear_all_data">پاک کردن همه داده‌ها</string>
+    <string name="clear_all_data_description">حذف کامل تمام اطلاعات برنامه</string>
+    <string name="clear_data_title">پاک کردن همه داده‌ها</string>
+    <string name="clear_data_warning">این عملیات غیرقابل بازگشت است!\n\nتمام تراکنش‌ها، کارت‌ها، دسته‌بندی‌ها، تگ‌ها و اعضای خانواده حذف خواهند شد.</string>
+    <string name="clear_data_confirm">آیا مطمئن هستید؟</string>
+    <string name="clear_data_success">تمام داده‌ها با موفقیت پاک شدند</string>
+    <string name="clear_data_error">خطا در پاک کردن داده‌ها</string>
 </resources>

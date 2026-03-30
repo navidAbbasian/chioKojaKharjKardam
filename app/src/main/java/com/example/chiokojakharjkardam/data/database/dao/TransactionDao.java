@@ -26,6 +26,9 @@ public interface TransactionDao {
     @Delete
     void delete(Transaction transaction);
 
+    @Query("DELETE FROM transactions")
+    void deleteAll();
+
     @Query("SELECT * FROM transactions ORDER BY date DESC, createdAt DESC")
     LiveData<List<Transaction>> getAllTransactions();
 
@@ -242,5 +245,27 @@ public interface TransactionDao {
             "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
             "WHERE t.type = 1 AND t.categoryId = :categoryId AND tt.tagId = :tagId AND t.date BETWEEN :startDate AND :endDate ORDER BY t.date DESC")
     LiveData<List<Transaction>> getIncomesByCategoryAndTagAndDateRange(long categoryId, long tagId, long startDate, long endDate);
+
+    /**
+     * دریافت همه تراکنش‌ها (درآمد+خرج) یک دسته‌بندی در بازه زمانی
+     */
+    @Query("SELECT * FROM transactions WHERE categoryId = :categoryId AND date BETWEEN :startDate AND :endDate ORDER BY date DESC")
+    LiveData<List<Transaction>> getAllTransactionsByCategoryAndDateRange(long categoryId, long startDate, long endDate);
+
+    /**
+     * دریافت همه تراکنش‌ها (درآمد+خرج) یک تگ در بازه زمانی
+     */
+    @Query("SELECT t.* FROM transactions t " +
+            "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
+            "WHERE tt.tagId = :tagId AND t.date BETWEEN :startDate AND :endDate ORDER BY t.date DESC")
+    LiveData<List<Transaction>> getAllTransactionsByTagAndDateRange(long tagId, long startDate, long endDate);
+
+    /**
+     * دریافت همه تراکنش‌ها (درآمد+خرج) یک دسته‌بندی و تگ در بازه زمانی
+     */
+    @Query("SELECT t.* FROM transactions t " +
+            "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
+            "WHERE t.categoryId = :categoryId AND tt.tagId = :tagId AND t.date BETWEEN :startDate AND :endDate ORDER BY t.date DESC")
+    LiveData<List<Transaction>> getAllTransactionsByCategoryAndTagAndDateRange(long categoryId, long tagId, long startDate, long endDate);
 }
 
