@@ -18,6 +18,7 @@ import com.example.chiokojakharjkardam.R;
 import com.example.chiokojakharjkardam.data.database.entity.BankCard;
 import com.example.chiokojakharjkardam.data.database.entity.Transfer;
 import com.example.chiokojakharjkardam.utils.CurrencyUtils;
+import com.example.chiokojakharjkardam.utils.ThousandSeparatorTextWatcher;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -63,6 +64,7 @@ public class TransferFragment extends Fragment {
     }
 
     private void setupListeners() {
+        etAmount.addTextChangedListener(new ThousandSeparatorTextWatcher(etAmount));
         btnTransfer.setOnClickListener(v -> doTransfer());
     }
 

@@ -7,6 +7,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.chiokojakharjkardam.data.database.AppDatabase;
 import com.example.chiokojakharjkardam.data.database.entity.BankCard;
 import com.example.chiokojakharjkardam.data.database.entity.Category;
 import com.example.chiokojakharjkardam.data.database.entity.Tag;
@@ -24,10 +25,14 @@ public class AddTransactionViewModel extends AndroidViewModel {
     private final CategoryRepository categoryRepository;
     private final BankCardRepository bankCardRepository;
     private final TagRepository tagRepository;
+    private final AppDatabase db;
 
     private final MutableLiveData<List<Category>> categories = new MutableLiveData<>();
     private final LiveData<List<BankCard>> cards;
     private final LiveData<List<Tag>> tags;
+
+    private final MutableLiveData<Transaction> editTransaction = new MutableLiveData<>();
+    private final MutableLiveData<List<Long>> editTransactionTagIds = new MutableLiveData<>();
 
     // نتیجه اعتبارسنجی موجودی
     private final MutableLiveData<BalanceValidationResult> balanceValidationResult = new MutableLiveData<>();
@@ -38,6 +43,7 @@ public class AddTransactionViewModel extends AndroidViewModel {
         categoryRepository = new CategoryRepository(application);
         bankCardRepository = new BankCardRepository(application);
         tagRepository = new TagRepository(application);
+        db = AppDatabase.getDatabase(application);
 
         cards = bankCardRepository.getAllCards();
         tags = tagRepository.getAllTags();
@@ -65,6 +71,23 @@ public class AddTransactionViewModel extends AndroidViewModel {
 
     public LiveData<BalanceValidationResult> getBalanceValidationResult() {
         return balanceValidationResult;
+    }
+
+    public LiveData<Transaction> getEditTransaction() {
+        return editTransaction;
+    }
+
+    public LiveData<List<Long>> getEditTransactionTagIds() {
+        return editTransactionTagIds;
+    }
+
+    public void loadTransactionForEdit(long transactionId) {
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            Transaction t = db.transactionDao().getTransactionByIdSync(transactionId);
+            editTransaction.postValue(t);
+            List<Long> tagIds = db.transactionTagDao().getTagIdsByTransaction(transactionId);
+            editTransactionTagIds.postValue(tagIds);
+        });
     }
 
     public void insertTransaction(Transaction transaction, List<Long> tagIds) {
@@ -96,4 +119,3 @@ public class AddTransactionViewModel extends AndroidViewModel {
         }
     }
 }
-

@@ -20,6 +20,7 @@ import com.example.chiokojakharjkardam.data.database.entity.Bill;
 import com.example.chiokojakharjkardam.ui.components.PersianDatePickerDialog;
 import com.example.chiokojakharjkardam.utils.CurrencyUtils;
 import com.example.chiokojakharjkardam.utils.PersianDateUtils;
+import com.example.chiokojakharjkardam.utils.ThousandSeparatorTextWatcher;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.slider.Slider;
 import com.google.android.material.switchmaterial.SwitchMaterial;
@@ -105,6 +106,9 @@ public class AddBillFragment extends Fragment {
     }
 
     private void setupListeners() {
+        // جداکننده هزارگان برای فیلد مبلغ
+        etAmount.addTextChangedListener(new ThousandSeparatorTextWatcher(etAmount));
+
         etDueDate.setOnClickListener(v -> showDatePicker());
 
         switchRecurring.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -152,7 +156,7 @@ public class AddBillFragment extends Fragment {
                 isDataLoaded = true;
                 existingBill = bill; // ذخیره قبض برای استفاده در هنگام ذخیره
                 etTitle.setText(bill.getTitle());
-                etAmount.setText(String.valueOf(bill.getAmount()));
+                ThousandSeparatorTextWatcher.setFormattedAmount(etAmount, bill.getAmount());
                 selectedDueDate = bill.getDueDate();
                 updateDateDisplay();
                 switchRecurring.setChecked(bill.isRecurring());

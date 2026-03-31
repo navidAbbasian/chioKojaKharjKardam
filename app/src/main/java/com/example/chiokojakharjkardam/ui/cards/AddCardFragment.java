@@ -27,6 +27,7 @@ import com.example.chiokojakharjkardam.data.database.entity.Member;
 import com.example.chiokojakharjkardam.ui.adapters.ColorAdapter;
 import com.example.chiokojakharjkardam.utils.Constants;
 import com.example.chiokojakharjkardam.utils.CurrencyUtils;
+import com.example.chiokojakharjkardam.utils.ThousandSeparatorTextWatcher;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
@@ -124,6 +125,9 @@ public class AddCardFragment extends Fragment {
         etCardHolder.addTextChangedListener(previewWatcher);
         etBalance.addTextChangedListener(previewWatcher);
 
+        // جداکننده هزارگان برای فیلد موجودی
+        etBalance.addTextChangedListener(new ThousandSeparatorTextWatcher(etBalance));
+
         btnSave.setOnClickListener(v -> saveCard());
     }
 
@@ -169,7 +173,7 @@ public class AddCardFragment extends Fragment {
                     etBankName.setText(card.getBankName());
                     etCardNumber.setText(card.getCardNumber());
                     etCardHolder.setText(card.getCardHolderName());
-                    etBalance.setText(String.valueOf(card.getBalance()));
+                    ThousandSeparatorTextWatcher.setFormattedAmount(etBalance, card.getBalance());
                     selectedColor = card.getColor();
                     updatePreview();
                 }

@@ -25,6 +25,7 @@ import com.example.chiokojakharjkardam.ui.adapters.CategoryAdapter;
 import com.example.chiokojakharjkardam.ui.components.PersianDatePickerDialog;
 import com.example.chiokojakharjkardam.utils.CurrencyUtils;
 import com.example.chiokojakharjkardam.utils.PersianDateUtils;
+import com.example.chiokojakharjkardam.utils.ThousandSeparatorTextWatcher;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.chip.Chip;
@@ -57,6 +58,11 @@ public class AddTransactionFragment extends Fragment {
     private List<Long> selectedTagIds = new ArrayList<>();
     private long editTransactionId = -1;
 
+    // تراکنشی که در حال ویرایش است
+    private Transaction pendingEditTransaction = null;
+    // آیا فرم ویرایش بارگذاری شده است
+    private boolean editFormPopulated = false;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -79,8 +85,13 @@ public class AddTransactionFragment extends Fragment {
         setupListeners();
         observeData();
 
-        // تنظیم تاریخ امروز
-        updateDateDisplay();
+        // اگر در حالت ویرایش هستیم، تراکنش را بارگذاری کن
+        if (editTransactionId != -1) {
+            viewModel.loadTransactionForEdit(editTransactionId);
+        } else {
+            // تنظیم تاریخ امروز فقط برای حالت افزودن
+            updateDateDisplay();
+        }
     }
 
     private void initViews(View view) {
@@ -102,12 +113,18 @@ public class AddTransactionFragment extends Fragment {
         });
         rvCategories.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
         rvCategories.setAdapter(categoryAdapter);
+
+        // جداکننده هزارگان برای فیلد مبلغ
+        etAmount.addTextChangedListener(new ThousandSeparatorTextWatcher(etAmount));
     }
 
     private void setupListeners() {
         toggleType.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (!isChecked) return;
-            selectedCategory = null; // ریست دسته‌بندی برای نوع جدید
+            // فقط در صورتی که در حال پر کردن فرم ویرایش نیستیم، دسته‌بندی ریست شود
+            if (!editFormPopulated) {
+                selectedCategory = null;
+            }
             if (checkedId == R.id.btn_transfer) {
                 tvToCardLabel.setVisibility(View.VISIBLE);
                 spinnerToCard.setVisibility(View.VISIBLE);
@@ -130,7 +147,16 @@ public class AddTransactionFragment extends Fragment {
         viewModel.getCategories().observe(getViewLifecycleOwner(), categories -> {
             if (categories != null) {
                 categoryAdapter.submitList(categories);
-                if (!categories.isEmpty() && selectedCategory == null) {
+                if (pendingEditTransaction != null && pendingEditTransaction.getCategoryId() != null) {
+                    // انتخاب دسته‌بندی مربوط به تراکنش در حال ویرایش
+                    for (Category cat : categories) {
+                        if (cat.getId() == pendingEditTransaction.getCategoryId()) {
+                            selectedCategory = cat;
+                            categoryAdapter.setSelectedCategory(cat);
+                            break;
+                        }
+                    }
+                } else if (!categories.isEmpty() && selectedCategory == null && pendingEditTransaction == null) {
                     selectedCategory = categories.get(0);
                     categoryAdapter.setSelectedCategory(selectedCategory);
                 }
@@ -155,8 +181,28 @@ public class AddTransactionFragment extends Fragment {
                         android.R.layout.simple_spinner_item, cardNames);
                 adapterTo.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinnerToCard.setAdapter(adapterTo);
-                // پیش‌فرض کارت مقصد: کارت دوم (اگر وجود داشته باشد)
-                if (cards.size() > 1) spinnerToCard.setSelection(1);
+
+                if (pendingEditTransaction != null) {
+                    // انتخاب کارت مبدا تراکنش در حال ویرایش
+                    for (int i = 0; i < cards.size(); i++) {
+                        if (cards.get(i).getId() == pendingEditTransaction.getCardId()) {
+                            spinnerCard.setSelection(i);
+                            break;
+                        }
+                    }
+                    // انتخاب کارت مقصد برای انتقال
+                    if (pendingEditTransaction.getToCardId() != null) {
+                        for (int i = 0; i < cards.size(); i++) {
+                            if (cards.get(i).getId() == pendingEditTransaction.getToCardId()) {
+                                spinnerToCard.setSelection(i);
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    // پیش‌فرض کارت مقصد: کارت دوم (اگر وجود داشته باشد)
+                    if (cards.size() > 1) spinnerToCard.setSelection(1);
+                }
             }
         });
 
@@ -170,6 +216,10 @@ public class AddTransactionFragment extends Fragment {
                     chip.setText(tag.getName());
                     chip.setCheckable(true);
                     chip.setTag(tag.getId());
+                    // اگر تگ در لیست تگ‌های تراکنش در حال ویرایش است، تیک بزن
+                    if (selectedTagIds.contains(tag.getId())) {
+                        chip.setChecked(true);
+                    }
                     chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
                         long tagId = (long) buttonView.getTag();
                         if (isChecked) {
@@ -195,8 +245,63 @@ public class AddTransactionFragment extends Fragment {
             }
         });
 
-        // بارگذاری دسته‌بندی‌های خرج به صورت پیش‌فرض
-        viewModel.loadCategoriesByType(Category.TYPE_EXPENSE);
+        // بارگذاری تراکنش برای ویرایش
+        viewModel.getEditTransaction().observe(getViewLifecycleOwner(), transaction -> {
+            if (transaction != null) {
+                pendingEditTransaction = transaction;
+                populateEditForm(transaction);
+            }
+        });
+
+        // بارگذاری تگ‌های تراکنش برای ویرایش
+        viewModel.getEditTransactionTagIds().observe(getViewLifecycleOwner(), tagIds -> {
+            if (tagIds != null) {
+                selectedTagIds.clear();
+                selectedTagIds.addAll(tagIds);
+                // به‌روزرسانی وضعیت چیپ‌های موجود
+                for (int i = 0; i < chipGroupTags.getChildCount(); i++) {
+                    View child = chipGroupTags.getChildAt(i);
+                    if (child instanceof Chip) {
+                        Chip chip = (Chip) child;
+                        long chipTagId = (long) chip.getTag();
+                        chip.setChecked(tagIds.contains(chipTagId));
+                    }
+                }
+            }
+        });
+
+        // بارگذاری دسته‌بندی‌های خرج به صورت پیش‌فرض (فقط در حالت افزودن)
+        if (editTransactionId == -1) {
+            viewModel.loadCategoriesByType(Category.TYPE_EXPENSE);
+        }
+    }
+
+    /**
+     * پر کردن فرم با اطلاعات تراکنش موجود
+     */
+    private void populateEditForm(Transaction transaction) {
+        editFormPopulated = true;
+
+        // مقدار - با جداکننده هزارگان
+        ThousandSeparatorTextWatcher.setFormattedAmount(etAmount, transaction.getAmount());
+
+        // توضیحات
+        etDescription.setText(transaction.getDescription());
+
+        // تاریخ
+        selectedDate = transaction.getDate();
+        updateDateDisplay();
+
+        // نوع تراکنش - تنظیم toggle (این خودش loadCategories رو صدا می‌زنه)
+        if (transaction.getType() == Transaction.TYPE_INCOME) {
+            toggleType.check(R.id.btn_income);
+        } else if (transaction.getType() == Transaction.TYPE_TRANSFER) {
+            toggleType.check(R.id.btn_transfer);
+        } else {
+            toggleType.check(R.id.btn_expense);
+        }
+
+        editFormPopulated = false;
     }
 
     private void showDatePicker() {
