@@ -61,7 +61,23 @@
     <string name="add_member">افزودن عضو</string>
     <string name="edit_member">ویرایش عضو</string>
     <string name="member_name">نام عضو</string>
-    <string name="owner_badge">صاحب برنامه</string>
+    <string name="owner_badge">سرپرست خانواده</string>
+    <string name="family_name">نام خانواده</string>
+    <string name="family_name_label">خانواده</string>
+    <string name="owner_name">نام سرپرست</string>
+    <string name="set_as_owner">سرپرست خانواده</string>
+    <string name="set_as_owner_desc">این عضو به عنوان سرپرست اصلی خانواده تعیین می‌شود</string>
+    <string name="edit_family_title">ویرایش نام خانواده</string>
+    <string name="create_family">ایجاد خانواده</string>
+    <string name="no_family_yet">خانواده‌ای ثبت نشده</string>
+    <string name="no_family_desc">پس از حذف اطلاعات، برای استفاده از برنامه باید خانواده و سرپرست آن را مجدداً ایجاد کنید</string>
+    <string name="family_created">خانواده با موفقیت ایجاد شد</string>
+    <string name="family_updated">نام خانواده بروزرسانی شد</string>
+    <string name="family_name_required">نام خانواده را وارد کنید</string>
+    <string name="owner_name_required">نام سرپرست را وارد کنید</string>
+    <string name="member_name_required">نام عضو را وارد کنید</string>
+    <string name="member_saved">عضو ذخیره شد</string>
+    <string name="no_family_error">ابتدا یک خانواده ایجاد کنید</string>
 
     <!-- Bills -->
     <string name="add_bill">افزودن قبض</string>

@@ -258,6 +258,8 @@ public class SettingsFragment extends Fragment {
         viewModel.getFamily().observe(getViewLifecycleOwner(), family -> {
             if (family != null) {
                 tvFamilyName.setText(family.getName());
+            } else {
+                tvFamilyName.setText(R.string.no_family_yet);
             }
         });
     }

@@ -43,5 +43,11 @@ public interface MemberDao {
 
     @Query("SELECT COUNT(*) FROM members")
     int getMemberCount();
+
+    @Query("UPDATE members SET isOwner = 0")
+    void clearAllOwners();
+
+    @Query("UPDATE members SET isOwner = 1 WHERE id = :memberId")
+    void setOwner(long memberId);
 }
 

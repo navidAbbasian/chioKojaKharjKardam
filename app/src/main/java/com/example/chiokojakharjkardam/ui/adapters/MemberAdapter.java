@@ -18,14 +18,23 @@ import com.google.android.material.card.MaterialCardView;
 public class MemberAdapter extends ListAdapter<Member, MemberAdapter.MemberViewHolder> {
 
     private final OnMemberClickListener listener;
+    private OnMemberLongClickListener longClickListener;
 
     public interface OnMemberClickListener {
         void onMemberClick(Member member);
     }
 
+    public interface OnMemberLongClickListener {
+        void onMemberLongClick(Member member);
+    }
+
     public MemberAdapter(OnMemberClickListener listener) {
         super(DIFF_CALLBACK);
         this.listener = listener;
+    }
+
+    public void setOnMemberLongClickListener(OnMemberLongClickListener l) {
+        this.longClickListener = l;
     }
 
     private static final DiffUtil.ItemCallback<Member> DIFF_CALLBACK = new DiffUtil.ItemCallback<Member>() {
@@ -70,10 +79,19 @@ public class MemberAdapter extends ListAdapter<Member, MemberAdapter.MemberViewH
             tvBadge = itemView.findViewById(R.id.tv_badge);
 
             itemView.setOnClickListener(v -> {
-                int position = getAdapterPosition();
-                if (position != RecyclerView.NO_POSITION && listener != null) {
-                    listener.onMemberClick(getItem(position));
+                int pos = getAdapterPosition();
+                if (pos != RecyclerView.NO_POSITION && listener != null) {
+                    listener.onMemberClick(getItem(pos));
                 }
+            });
+
+            itemView.setOnLongClickListener(v -> {
+                int pos = getAdapterPosition();
+                if (pos != RecyclerView.NO_POSITION && longClickListener != null) {
+                    longClickListener.onMemberLongClick(getItem(pos));
+                    return true;
+                }
+                return false;
             });
         }
 
@@ -100,4 +118,3 @@ public class MemberAdapter extends ListAdapter<Member, MemberAdapter.MemberViewH
         }
     }
 }
-

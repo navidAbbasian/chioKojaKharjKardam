@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
+import com.example.chiokojakharjkardam.data.database.AppDatabase;
 import com.example.chiokojakharjkardam.data.database.entity.Family;
 import com.example.chiokojakharjkardam.data.database.entity.Member;
 import com.example.chiokojakharjkardam.data.repository.FamilyRepository;
@@ -37,5 +38,14 @@ public class AddMemberViewModel extends AndroidViewModel {
     public void updateMember(Member member) {
         memberRepository.update(member);
     }
-}
 
+    /** اگر isOwner = true باشد، ابتدا owner قبلی را پاک می‌کند، سپس این عضو را owner می‌کند */
+    public void setAsOwnerIfNeeded(long memberId, boolean isOwner) {
+        if (!isOwner) return;
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            AppDatabase db = AppDatabase.getDatabase(getApplication());
+            db.memberDao().clearAllOwners();
+            db.memberDao().setOwner(memberId);
+        });
+    }
+}
