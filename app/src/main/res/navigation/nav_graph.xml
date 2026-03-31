@@ -83,7 +83,18 @@
         <action
             android:id="@+id/action_settings_to_reports"
             app:destination="@id/reportsFragment" />
+
+        <action
+            android:id="@+id/action_settings_to_clearData"
+            app:destination="@id/clearDataFragment" />
     </fragment>
+
+    <!-- حذف اطلاعات -->
+    <fragment
+        android:id="@+id/clearDataFragment"
+        android:name="com.example.chiokojakharjkardam.ui.settings.ClearDataFragment"
+        android:label="@string/clear_data_page_title"
+        tools:layout="@layout/fragment_clear_data" />
 
     <!-- افزودن تراکنش -->
     <fragment

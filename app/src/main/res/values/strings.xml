@@ -178,9 +178,16 @@
     <!-- Clear Data -->
     <string name="clear_all_data">پاک کردن همه داده‌ها</string>
     <string name="clear_all_data_description">حذف کامل تمام اطلاعات برنامه</string>
+    <string name="clear_data_page_title">حذف اطلاعات</string>
+    <string name="clear_data_page_warning">توجه: تمام عملیات حذف غیرقابل بازگشت هستند. قبل از ادامه مطمئن شوید.</string>
     <string name="clear_data_title">پاک کردن همه داده‌ها</string>
     <string name="clear_data_warning">این عملیات غیرقابل بازگشت است!\n\nتمام تراکنش‌ها، کارت‌ها، دسته‌بندی‌ها، تگ‌ها و اعضای خانواده حذف خواهند شد.</string>
     <string name="clear_data_confirm">آیا مطمئن هستید؟</string>
     <string name="clear_data_success">تمام داده‌ها با موفقیت پاک شدند</string>
     <string name="clear_data_error">خطا در پاک کردن داده‌ها</string>
+    <string name="clear_all_data_desc_full">تمام اطلاعات شامل تراکنش‌ها، کارت‌ها، دسته‌بندی‌ها، تگ‌ها و اعضای خانواده پاک می‌شود</string>
+    <string name="clear_transactions_only">پاک کردن فقط تراکنش‌ها</string>
+    <string name="clear_transactions_only_desc">فقط تراکنش‌ها و انتقال‌ها پاک می‌شوند. کارت‌ها، دسته‌بندی‌ها، تگ‌ها و اعضا باقی می‌مانند</string>
+    <string name="clear_transactions_confirm_msg">این عملیات غیرقابل بازگشت است!\n\nتمام تراکنش‌ها و انتقال‌ها حذف خواهند شد. آیا مطمئن هستید؟</string>
+    <string name="clear_transactions_success">تراکنش‌ها با موفقیت پاک شدند</string>
 </resources>

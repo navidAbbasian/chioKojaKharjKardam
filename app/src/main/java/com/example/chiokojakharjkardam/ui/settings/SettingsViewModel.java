@@ -30,6 +30,20 @@ public class SettingsViewModel extends AndroidViewModel {
         void onError(String error);
     }
 
+    public void clearTransactionsOnly(ClearDataCallback callback) {
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            try {
+                AppDatabase db = AppDatabase.getDatabase(getApplication());
+                db.transactionTagDao().deleteAll();
+                db.transactionDao().deleteAll();
+                db.transferDao().deleteAll();
+                if (callback != null) callback.onSuccess();
+            } catch (Exception e) {
+                if (callback != null) callback.onError(e.getMessage());
+            }
+        });
+    }
+
     public void clearAllData(ClearDataCallback callback) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             try {

@@ -122,7 +122,9 @@ public class SettingsFragment extends Fragment {
         cardRestore.setOnClickListener(v -> showRestoreDialog());
 
         MaterialCardView cardClearData = view.findViewById(R.id.card_clear_data);
-        cardClearData.setOnClickListener(v -> showClearDataDialog());
+        cardClearData.setOnClickListener(v ->
+                Navigation.findNavController(v).navigate(R.id.action_settings_to_clearData)
+        );
 
         MaterialCardView cardAbout = view.findViewById(R.id.card_about);
         cardAbout.setOnClickListener(v -> showAboutDialog());
@@ -217,45 +219,6 @@ public class SettingsFragment extends Fragment {
         });
     }
 
-    private void showClearDataDialog() {
-        new MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.clear_data_title)
-                .setMessage(getString(R.string.clear_data_warning) + "\n\n" + getString(R.string.clear_data_confirm))
-                .setPositiveButton(R.string.delete, (dialog, which) -> {
-                    viewModel.clearAllData(new SettingsViewModel.ClearDataCallback() {
-                        @Override
-                        public void onSuccess() {
-                            if (isAdded()) {
-                                requireActivity().runOnUiThread(() -> {
-                                    new MaterialAlertDialogBuilder(requireContext())
-                                            .setTitle(R.string.success)
-                                            .setMessage(R.string.clear_data_success)
-                                            .setPositiveButton(R.string.yes, (d, w) -> {
-                                                // راه‌اندازی مجدد برنامه
-                                                Intent intent = new Intent(requireContext(), MainActivity.class);
-                                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                                startActivity(intent);
-                                                requireActivity().finish();
-                                            })
-                                            .setCancelable(false)
-                                            .show();
-                                });
-                            }
-                        }
-
-                        @Override
-                        public void onError(String error) {
-                            if (isAdded()) {
-                                requireActivity().runOnUiThread(() ->
-                                        Toast.makeText(requireContext(), getString(R.string.clear_data_error), Toast.LENGTH_LONG).show()
-                                );
-                            }
-                        }
-                    });
-                })
-                .setNegativeButton(R.string.cancel, null)
-                .show();
-    }
 
     private void showAboutDialog() {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_about, null);
