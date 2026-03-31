@@ -33,8 +33,10 @@ public class TransactionDetailFragment extends Fragment {
     private TextView tvDescription;
     private TextView tvCategory;
     private TextView tvCard;
+    private TextView tvToCard;
     private TextView tvDate;
     private LinearLayout layoutTags;
+    private View layoutToCard;
     private ChipGroup chipGroupTags;
     private MaterialButton btnEdit;
     private MaterialButton btnDelete;
@@ -70,8 +72,10 @@ public class TransactionDetailFragment extends Fragment {
         tvDescription = view.findViewById(R.id.tv_description);
         tvCategory = view.findViewById(R.id.tv_category);
         tvCard = view.findViewById(R.id.tv_card);
+        tvToCard = view.findViewById(R.id.tv_to_card);
         tvDate = view.findViewById(R.id.tv_date);
         layoutTags = view.findViewById(R.id.layout_tags);
+        layoutToCard = view.findViewById(R.id.layout_to_card);
         chipGroupTags = view.findViewById(R.id.chip_group_tags);
         btnEdit = view.findViewById(R.id.btn_edit);
         btnDelete = view.findViewById(R.id.btn_delete);
@@ -113,11 +117,16 @@ public class TransactionDetailFragment extends Fragment {
         if (transaction.getType() == Transaction.TYPE_EXPENSE) {
             tvAmount.setText("-" + amountText);
             tvAmount.setTextColor(Color.parseColor("#F44336"));
-            tvType.setText("خرج");
-        } else {
+            tvType.setText(R.string.expense);
+        } else if (transaction.getType() == Transaction.TYPE_INCOME) {
             tvAmount.setText("+" + amountText);
             tvAmount.setTextColor(Color.parseColor("#4CAF50"));
-            tvType.setText("درآمد");
+            tvType.setText(R.string.income);
+        } else {
+            // TYPE_TRANSFER
+            tvAmount.setText(amountText);
+            tvAmount.setTextColor(Color.parseColor("#2196F3"));
+            tvType.setText(R.string.transfer_type);
         }
 
         String description = transaction.getDescription();
@@ -133,7 +142,7 @@ public class TransactionDetailFragment extends Fragment {
             }
         });
 
-        // بارگذاری نام کارت
+        // بارگذاری نام کارت مبدا
         viewModel.getCardById(transaction.getCardId()).observe(getViewLifecycleOwner(), card -> {
             if (card != null) {
                 tvCard.setText(card.getBankName() + " - " + card.getCardNumber());
@@ -141,6 +150,20 @@ public class TransactionDetailFragment extends Fragment {
                 tvCard.setText("-");
             }
         });
+
+        // کارت مقصد برای نوع کارت به کارت
+        if (transaction.getType() == Transaction.TYPE_TRANSFER && transaction.getToCardId() != null) {
+            layoutToCard.setVisibility(View.VISIBLE);
+            viewModel.getCardById(transaction.getToCardId()).observe(getViewLifecycleOwner(), card -> {
+                if (card != null) {
+                    tvToCard.setText(card.getBankName() + " - " + card.getCardNumber());
+                } else {
+                    tvToCard.setText("-");
+                }
+            });
+        } else {
+            layoutToCard.setVisibility(View.GONE);
+        }
 
         // بارگذاری تگ‌ها
         viewModel.getTagsByTransactionId(transaction.getId()).observe(getViewLifecycleOwner(), tags -> {

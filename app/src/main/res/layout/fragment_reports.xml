@@ -245,6 +245,14 @@
                             android:layout_weight="1"
                             android:text="@string/income" />
 
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_transfer_type"
+                            style="?attr/materialButtonOutlinedStyle"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/transfer_type" />
+
                     </com.google.android.material.button.MaterialButtonToggleGroup>
 
                 </LinearLayout>

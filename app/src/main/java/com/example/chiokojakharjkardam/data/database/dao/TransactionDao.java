@@ -267,5 +267,73 @@ public interface TransactionDao {
             "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
             "WHERE t.categoryId = :categoryId AND tt.tagId = :tagId AND t.date BETWEEN :startDate AND :endDate ORDER BY t.date DESC")
     LiveData<List<Transaction>> getAllTransactionsByCategoryAndTagAndDateRange(long categoryId, long tagId, long startDate, long endDate);
+
+    /**
+     * دریافت تراکنش‌های کارت به کارت در بازه زمانی مشخص
+     */
+    @Query("SELECT * FROM transactions WHERE type = 2 AND date BETWEEN :startDate AND :endDate ORDER BY date DESC")
+    LiveData<List<Transaction>> getTransfersByDateRange(long startDate, long endDate);
+
+    /**
+     * دریافت تراکنش‌های کارت به کارت یک دسته‌بندی در بازه زمانی
+     */
+    @Query("SELECT * FROM transactions WHERE type = 2 AND categoryId = :categoryId AND date BETWEEN :startDate AND :endDate ORDER BY date DESC")
+    LiveData<List<Transaction>> getTransfersByCategoryAndDateRange(long categoryId, long startDate, long endDate);
+
+    /**
+     * دریافت تراکنش‌های کارت به کارت یک تگ در بازه زمانی
+     */
+    @Query("SELECT t.* FROM transactions t " +
+            "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
+            "WHERE t.type = 2 AND tt.tagId = :tagId AND t.date BETWEEN :startDate AND :endDate ORDER BY t.date DESC")
+    LiveData<List<Transaction>> getTransfersByTagAndDateRange(long tagId, long startDate, long endDate);
+
+    /**
+     * دریافت تراکنش‌های کارت به کارت یک دسته‌بندی و تگ در بازه زمانی
+     */
+    @Query("SELECT t.* FROM transactions t " +
+            "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
+            "WHERE t.type = 2 AND t.categoryId = :categoryId AND tt.tagId = :tagId AND t.date BETWEEN :startDate AND :endDate ORDER BY t.date DESC")
+    LiveData<List<Transaction>> getTransfersByCategoryAndTagAndDateRange(long categoryId, long tagId, long startDate, long endDate);
+
+    /**
+     * گزارش کارت به کارت بر اساس دسته‌بندی در بازه زمانی
+     */
+    @Query("SELECT t.categoryId as categoryId, c.name as categoryName, c.color as categoryColor, " +
+            "c.icon as categoryIcon, SUM(t.amount) as totalAmount, COUNT(DISTINCT t.id) as transactionCount " +
+            "FROM transactions t " +
+            "LEFT JOIN categories c ON t.categoryId = c.id " +
+            "WHERE t.type = 2 AND t.date BETWEEN :startDate AND :endDate " +
+            "GROUP BY t.categoryId " +
+            "ORDER BY totalAmount DESC")
+    LiveData<List<CategoryReport>> getTransferReportByCategory(long startDate, long endDate);
+
+    /**
+     * گزارش کارت به کارت بر اساس تگ در بازه زمانی
+     */
+    @Query("SELECT tg.id as tagId, tg.name as tagName, tg.color as tagColor, " +
+            "SUM(t.amount) as totalAmount, COUNT(DISTINCT t.id) as transactionCount " +
+            "FROM transactions t " +
+            "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
+            "INNER JOIN tags tg ON tt.tagId = tg.id " +
+            "WHERE t.type = 2 AND t.date BETWEEN :startDate AND :endDate " +
+            "GROUP BY tg.id " +
+            "ORDER BY totalAmount DESC")
+    LiveData<List<TagReport>> getTransferReportByTag(long startDate, long endDate);
+
+    /**
+     * گزارش ترکیبی کارت به کارت بر اساس دسته‌بندی و تگ در بازه زمانی
+     */
+    @Query("SELECT t.categoryId as categoryId, c.name as categoryName, c.color as categoryColor, " +
+            "c.icon as categoryIcon, tg.id as tagId, tg.name as tagName, tg.color as tagColor, " +
+            "SUM(t.amount) as totalAmount, COUNT(DISTINCT t.id) as transactionCount " +
+            "FROM transactions t " +
+            "LEFT JOIN categories c ON t.categoryId = c.id " +
+            "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
+            "INNER JOIN tags tg ON tt.tagId = tg.id " +
+            "WHERE t.type = 2 AND t.date BETWEEN :startDate AND :endDate " +
+            "GROUP BY t.categoryId, tg.id " +
+            "ORDER BY totalAmount DESC")
+    LiveData<List<CombinedReport>> getTransferReportByCategoryAndTag(long startDate, long endDate);
 }
 

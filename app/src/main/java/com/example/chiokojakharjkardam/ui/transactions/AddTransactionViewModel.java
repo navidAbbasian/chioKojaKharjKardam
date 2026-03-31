@@ -47,6 +47,10 @@ public class AddTransactionViewModel extends AndroidViewModel {
         categoryRepository.getCategoriesByType(type).observeForever(categories::setValue);
     }
 
+    public void loadAllCategories() {
+        categoryRepository.getAllCategories().observeForever(categories::setValue);
+    }
+
     public LiveData<List<Category>> getCategories() {
         return categories;
     }

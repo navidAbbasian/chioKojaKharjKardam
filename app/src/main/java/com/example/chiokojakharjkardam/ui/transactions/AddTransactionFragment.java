@@ -44,6 +44,8 @@ public class AddTransactionFragment extends Fragment {
     private TextInputEditText etDate;
     private RecyclerView rvCategories;
     private Spinner spinnerCard;
+    private Spinner spinnerToCard;
+    private View tvToCardLabel;
     private ChipGroup chipGroupTags;
     private MaterialButton btnSave;
 
@@ -88,6 +90,8 @@ public class AddTransactionFragment extends Fragment {
         etDate = view.findViewById(R.id.et_date);
         rvCategories = view.findViewById(R.id.rv_categories);
         spinnerCard = view.findViewById(R.id.spinner_card);
+        spinnerToCard = view.findViewById(R.id.spinner_to_card);
+        tvToCardLabel = view.findViewById(R.id.tv_to_card_label);
         chipGroupTags = view.findViewById(R.id.chip_group_tags);
         btnSave = view.findViewById(R.id.btn_save);
 
@@ -102,7 +106,15 @@ public class AddTransactionFragment extends Fragment {
 
     private void setupListeners() {
         toggleType.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (isChecked) {
+            if (!isChecked) return;
+            selectedCategory = null; // ریست دسته‌بندی برای نوع جدید
+            if (checkedId == R.id.btn_transfer) {
+                tvToCardLabel.setVisibility(View.VISIBLE);
+                spinnerToCard.setVisibility(View.VISIBLE);
+                viewModel.loadAllCategories();
+            } else {
+                tvToCardLabel.setVisibility(View.GONE);
+                spinnerToCard.setVisibility(View.GONE);
                 int type = (checkedId == R.id.btn_expense) ? Category.TYPE_EXPENSE : Category.TYPE_INCOME;
                 viewModel.loadCategoriesByType(type);
             }
@@ -137,6 +149,14 @@ public class AddTransactionFragment extends Fragment {
                         android.R.layout.simple_spinner_item, cardNames);
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinnerCard.setAdapter(adapter);
+
+                // کارت مقصد هم همین لیست رو داره
+                ArrayAdapter<String> adapterTo = new ArrayAdapter<>(requireContext(),
+                        android.R.layout.simple_spinner_item, cardNames);
+                adapterTo.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerToCard.setAdapter(adapterTo);
+                // پیش‌فرض کارت مقصد: کارت دوم (اگر وجود داشته باشد)
+                if (cards.size() > 1) spinnerToCard.setSelection(1);
             }
         });
 
@@ -153,9 +173,7 @@ public class AddTransactionFragment extends Fragment {
                     chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
                         long tagId = (long) buttonView.getTag();
                         if (isChecked) {
-                            if (!selectedTagIds.contains(tagId)) {
-                                selectedTagIds.add(tagId);
-                            }
+                            if (!selectedTagIds.contains(tagId)) selectedTagIds.add(tagId);
                         } else {
                             selectedTagIds.remove(tagId);
                         }
@@ -169,7 +187,7 @@ public class AddTransactionFragment extends Fragment {
         viewModel.getBalanceValidationResult().observe(getViewLifecycleOwner(), result -> {
             if (result != null) {
                 if (result.success) {
-                    Toast.makeText(requireContext(), "تراکنش ذخیره شد", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), R.string.transaction_saved, Toast.LENGTH_SHORT).show();
                     Navigation.findNavController(requireView()).popBackStack();
                 } else {
                     Toast.makeText(requireContext(), result.errorMessage, Toast.LENGTH_LONG).show();
@@ -183,13 +201,11 @@ public class AddTransactionFragment extends Fragment {
 
     private void showDatePicker() {
         PersianDatePickerDialog dialog = PersianDatePickerDialog.fromTimestamp(
-                requireContext(),
-                selectedDate,
+                requireContext(), selectedDate,
                 (year, month, day, timestamp) -> {
                     selectedDate = timestamp;
                     updateDateDisplay();
-                }
-        );
+                });
         dialog.show();
     }
 
@@ -198,45 +214,76 @@ public class AddTransactionFragment extends Fragment {
     }
 
     private void saveTransaction() {
-        String amountStr = etAmount.getText().toString().trim();
-        String description = etDescription.getText().toString().trim();
+        String amountStr = etAmount.getText() != null ? etAmount.getText().toString().trim() : "";
+        String description = etDescription.getText() != null ? etDescription.getText().toString().trim() : "";
+        int checkedId = toggleType.getCheckedButtonId();
 
         if (amountStr.isEmpty()) {
-            etAmount.setError("مبلغ را وارد کنید");
-            return;
-        }
-
-        if (selectedCategory == null) {
-            Toast.makeText(requireContext(), "دسته‌بندی را انتخاب کنید", Toast.LENGTH_SHORT).show();
+            etAmount.setError(getString(R.string.amount_required));
             return;
         }
 
         if (cardsList.isEmpty() || spinnerCard.getSelectedItemPosition() < 0) {
-            Toast.makeText(requireContext(), "کارت را انتخاب کنید", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), R.string.select_card_error, Toast.LENGTH_SHORT).show();
             return;
         }
 
         long amount = CurrencyUtils.parseAmount(amountStr);
-        BankCard selectedCard = cardsList.get(spinnerCard.getSelectedItemPosition());
-        int type = toggleType.getCheckedButtonId() == R.id.btn_expense
-                ? Transaction.TYPE_EXPENSE
-                : Transaction.TYPE_INCOME;
+        BankCard sourceCard = cardsList.get(spinnerCard.getSelectedItemPosition());
 
-        Transaction transaction = new Transaction(
-                selectedCard.getId(),
-                selectedCategory.getId(),
-                amount,
-                type,
-                description.isEmpty() ? selectedCategory.getName() : description,
-                selectedDate
-        );
+        if (checkedId == R.id.btn_transfer) {
+            // ─── کارت به کارت ───
+            if (cardsList.size() < 2) {
+                Toast.makeText(requireContext(), R.string.need_two_cards, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            int toPos = spinnerToCard.getSelectedItemPosition();
+            if (toPos < 0 || toPos >= cardsList.size()) {
+                Toast.makeText(requireContext(), R.string.select_destination_card, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            BankCard destCard = cardsList.get(toPos);
+            if (sourceCard.getId() == destCard.getId()) {
+                Toast.makeText(requireContext(), R.string.same_card_error, Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-        if (editTransactionId != -1) {
-            transaction.setId(editTransactionId);
-            viewModel.updateTransaction(transaction, selectedTagIds);
+            Long categoryId = selectedCategory != null ? selectedCategory.getId() : null;
+            Transaction transaction = new Transaction(
+                    sourceCard.getId(), categoryId, amount,
+                    Transaction.TYPE_TRANSFER,
+                    description.isEmpty() ? getString(R.string.transfer_type) : description,
+                    selectedDate
+            );
+            transaction.setToCardId(destCard.getId());
+
+            if (editTransactionId != -1) {
+                transaction.setId(editTransactionId);
+                viewModel.updateTransaction(transaction, selectedTagIds);
+            } else {
+                viewModel.insertTransaction(transaction, selectedTagIds);
+            }
+
         } else {
-            viewModel.insertTransaction(transaction, selectedTagIds);
+            // ─── خرج یا درآمد ───
+            if (selectedCategory == null) {
+                Toast.makeText(requireContext(), R.string.select_category_error, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            int type = (checkedId == R.id.btn_expense) ? Transaction.TYPE_EXPENSE : Transaction.TYPE_INCOME;
+            Transaction transaction = new Transaction(
+                    sourceCard.getId(), selectedCategory.getId(), amount, type,
+                    description.isEmpty() ? selectedCategory.getName() : description,
+                    selectedDate
+            );
+
+            if (editTransactionId != -1) {
+                transaction.setId(editTransactionId);
+                viewModel.updateTransaction(transaction, selectedTagIds);
+            } else {
+                viewModel.insertTransaction(transaction, selectedTagIds);
+            }
         }
     }
 }
-

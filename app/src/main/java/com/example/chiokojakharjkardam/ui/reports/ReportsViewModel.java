@@ -26,6 +26,7 @@ public class ReportsViewModel extends AndroidViewModel {
     public static final int TRANSACTION_TYPE_EXPENSE = 0;
     public static final int TRANSACTION_TYPE_INCOME = 1;
     public static final int TRANSACTION_TYPE_ALL = 2;
+    public static final int TRANSACTION_TYPE_TRANSFER = 3;
 
     public static final int DATE_RANGE_THIS_MONTH = 0;
     public static final int DATE_RANGE_LAST_3_MONTHS = 1;
@@ -164,7 +165,7 @@ public class ReportsViewModel extends AndroidViewModel {
         // به‌روزرسانی لیست تراکنش‌ها با فیلترهای انتخابی
         refreshTransactions(start, end, type, group);
 
-        // گزارش‌های گروه‌بندی فقط در حالت غیر ALL نمایش داده می‌شوند
+        // گزارش‌های گروه‌بندی فقط در حالت ALL نمایش داده نمی‌شوند
         if (type == TRANSACTION_TYPE_ALL) return;
 
         switch (group) {
@@ -192,7 +193,7 @@ public class ReportsViewModel extends AndroidViewModel {
         boolean hasTagFilter = tagId != null && tagId > 0;
 
         if (type == TRANSACTION_TYPE_ALL) {
-            // همه تراکنش‌ها (درآمد + خرج)
+            // همه تراکنش‌ها (خرج + درآمد + کارت به کارت)
             if (group == GROUP_BY_COMBINED && hasCategoryFilter && hasTagFilter) {
                 currentTransactionsSource = repository.getAllTransactionsByCategoryAndTagAndDateRange(catId, tagId, start, end);
             } else if (hasCategoryFilter) {
@@ -201,6 +202,17 @@ public class ReportsViewModel extends AndroidViewModel {
                 currentTransactionsSource = repository.getAllTransactionsByTagAndDateRange(tagId, start, end);
             } else {
                 currentTransactionsSource = repository.getTransactionsByDateRange(start, end);
+            }
+        } else if (type == TRANSACTION_TYPE_TRANSFER) {
+            // فقط کارت به کارت
+            if (group == GROUP_BY_COMBINED && hasCategoryFilter && hasTagFilter) {
+                currentTransactionsSource = repository.getTransfersByCategoryAndTagAndDateRange(catId, tagId, start, end);
+            } else if (hasCategoryFilter) {
+                currentTransactionsSource = repository.getTransfersByCategoryAndDateRange(catId, start, end);
+            } else if (hasTagFilter) {
+                currentTransactionsSource = repository.getTransfersByTagAndDateRange(tagId, start, end);
+            } else {
+                currentTransactionsSource = repository.getTransfersByDateRange(start, end);
             }
         } else if (type == TRANSACTION_TYPE_EXPENSE) {
             if (group == GROUP_BY_COMBINED && hasCategoryFilter && hasTagFilter) {
@@ -242,6 +254,8 @@ public class ReportsViewModel extends AndroidViewModel {
 
         if (type == TRANSACTION_TYPE_EXPENSE) {
             currentCategorySource = repository.getExpenseReportByCategory(start, end);
+        } else if (type == TRANSACTION_TYPE_TRANSFER) {
+            currentCategorySource = repository.getTransferReportByCategory(start, end);
         } else {
             currentCategorySource = repository.getIncomeReportByCategory(start, end);
         }
@@ -256,6 +270,8 @@ public class ReportsViewModel extends AndroidViewModel {
 
         if (type == TRANSACTION_TYPE_EXPENSE) {
             currentTagSource = repository.getExpenseReportByTag(start, end);
+        } else if (type == TRANSACTION_TYPE_TRANSFER) {
+            currentTagSource = repository.getTransferReportByTag(start, end);
         } else {
             currentTagSource = repository.getIncomeReportByTag(start, end);
         }
@@ -270,6 +286,8 @@ public class ReportsViewModel extends AndroidViewModel {
 
         if (type == TRANSACTION_TYPE_EXPENSE) {
             currentCombinedSource = repository.getExpenseReportByCategoryAndTag(start, end);
+        } else if (type == TRANSACTION_TYPE_TRANSFER) {
+            currentCombinedSource = repository.getTransferReportByCategoryAndTag(start, end);
         } else {
             currentCombinedSource = repository.getIncomeReportByCategoryAndTag(start, end);
         }

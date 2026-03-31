@@ -51,10 +51,20 @@
 
     <!-- Transfer -->
     <string name="transfer_title">انتقال موجودی</string>
+    <string name="transfer_type">کارت به کارت</string>
     <string name="from_card">از کارت</string>
-    <string name="to_card">به کارت</string>
+    <string name="to_card">کارت مقصد</string>
+    <string name="from_card_label">کارت مبدا:</string>
+    <string name="to_card_label">کارت مقصد:</string>
     <string name="transfer_amount">مبلغ انتقال</string>
     <string name="transfer_success">انتقال با موفقیت انجام شد</string>
+    <string name="transaction_saved">تراکنش ذخیره شد</string>
+    <string name="amount_required">مبلغ را وارد کنید</string>
+    <string name="select_card_error">کارت را انتخاب کنید</string>
+    <string name="select_category_error">دسته‌بندی را انتخاب کنید</string>
+    <string name="select_destination_card">کارت مقصد را انتخاب کنید</string>
+    <string name="need_two_cards">برای انتقال کارت به کارت، حداقل ۲ کارت نیاز است</string>
+    <string name="same_card_error">کارت مبدا و مقصد نمی‌توانند یکسان باشند</string>
 
     <!-- Members -->
     <string name="members">اعضای خانواده</string>

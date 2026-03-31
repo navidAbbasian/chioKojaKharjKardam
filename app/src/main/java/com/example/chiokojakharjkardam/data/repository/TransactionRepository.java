@@ -38,12 +38,21 @@ public class TransactionRepository {
                                          OnTransactionInsertedListener listener,
                                          OnTransactionErrorListener errorListener) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
-            // بررسی موجودی کارت برای تراکنش‌های خرج
-            if (transaction.getType() == Transaction.TYPE_EXPENSE) {
+            // بررسی موجودی کارت برای تراکنش‌های خرج و کارت به کارت
+            if (transaction.getType() == Transaction.TYPE_EXPENSE
+                    || transaction.getType() == Transaction.TYPE_TRANSFER) {
                 BankCard card = bankCardDao.getCardByIdSync(transaction.getCardId());
                 if (card != null && card.getBalance() < transaction.getAmount()) {
                     if (errorListener != null) {
                         errorListener.onError("موجودی کارت کافی نیست. موجودی فعلی: " + card.getBalance());
+                    }
+                    return;
+                }
+                // بررسی کارت مقصد برای کارت به کارت
+                if (transaction.getType() == Transaction.TYPE_TRANSFER
+                        && (transaction.getToCardId() == null || transaction.getToCardId() == transaction.getCardId())) {
+                    if (errorListener != null) {
+                        errorListener.onError("کارت مقصد باید متفاوت از کارت مبدا باشد");
                     }
                     return;
                 }
@@ -61,11 +70,17 @@ public class TransactionRepository {
                 transactionTagDao.insertAll(transactionTags);
             }
 
-            // به‌روزرسانی موجودی کارت
-            long balanceChange = transaction.getType() == Transaction.TYPE_INCOME
-                    ? transaction.getAmount()
-                    : -transaction.getAmount();
-            bankCardDao.updateBalance(transaction.getCardId(), balanceChange);
+            // به‌روزرسانی موجودی
+            if (transaction.getType() == Transaction.TYPE_TRANSFER) {
+                // کارت به کارت: از مبدا کم کن، به مقصد اضافه کن
+                bankCardDao.updateBalance(transaction.getCardId(), -transaction.getAmount());
+                bankCardDao.updateBalance(transaction.getToCardId(), transaction.getAmount());
+            } else {
+                long balanceChange = transaction.getType() == Transaction.TYPE_INCOME
+                        ? transaction.getAmount()
+                        : -transaction.getAmount();
+                bankCardDao.updateBalance(transaction.getCardId(), balanceChange);
+            }
 
             if (listener != null) {
                 listener.onTransactionInserted(transactionId);
@@ -77,41 +92,50 @@ public class TransactionRepository {
                        OnTransactionUpdatedListener listener,
                        OnTransactionErrorListener errorListener) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
-            // دریافت تراکنش قبلی برای محاسبه تفاوت موجودی
             Transaction oldTransaction = transactionDao.getTransactionByIdSync(transaction.getId());
 
             if (oldTransaction != null) {
-                // محاسبه تغییر موجودی
-                long oldBalanceChange = oldTransaction.getType() == Transaction.TYPE_INCOME
-                        ? -oldTransaction.getAmount()
-                        : oldTransaction.getAmount();
+                // برگرداندن موجودی قبلی
+                if (oldTransaction.getType() == Transaction.TYPE_TRANSFER) {
+                    bankCardDao.updateBalance(oldTransaction.getCardId(), oldTransaction.getAmount());
+                    if (oldTransaction.getToCardId() != null) {
+                        bankCardDao.updateBalance(oldTransaction.getToCardId(), -oldTransaction.getAmount());
+                    }
+                } else {
+                    long oldBalanceChange = oldTransaction.getType() == Transaction.TYPE_INCOME
+                            ? -oldTransaction.getAmount()
+                            : oldTransaction.getAmount();
+                    bankCardDao.updateBalance(oldTransaction.getCardId(), oldBalanceChange);
+                }
 
                 // بررسی موجودی برای تراکنش جدید
-                if (transaction.getType() == Transaction.TYPE_EXPENSE) {
+                if (transaction.getType() == Transaction.TYPE_EXPENSE
+                        || transaction.getType() == Transaction.TYPE_TRANSFER) {
                     BankCard card = bankCardDao.getCardByIdSync(transaction.getCardId());
                     if (card != null) {
-                        // موجودی بعد از برگرداندن تراکنش قبلی
                         long availableBalance = card.getBalance();
-                        if (oldTransaction.getCardId() == transaction.getCardId()) {
-                            availableBalance = card.getBalance() + oldBalanceChange;
-                        }
                         if (availableBalance < transaction.getAmount()) {
-                            if (errorListener != null) {
-                                errorListener.onError("موجودی کارت کافی نیست. موجودی فعلی: " + availableBalance);
+                            // برگرداندن تغییر قبلی که دادیم
+                            if (oldTransaction.getType() == Transaction.TYPE_TRANSFER) {
+                                bankCardDao.updateBalance(oldTransaction.getCardId(), -oldTransaction.getAmount());
+                                if (oldTransaction.getToCardId() != null)
+                                    bankCardDao.updateBalance(oldTransaction.getToCardId(), oldTransaction.getAmount());
+                            } else {
+                                long revert = oldTransaction.getType() == Transaction.TYPE_INCOME
+                                        ? oldTransaction.getAmount()
+                                        : -oldTransaction.getAmount();
+                                bankCardDao.updateBalance(oldTransaction.getCardId(), revert);
                             }
+                            if (errorListener != null)
+                                errorListener.onError("موجودی کارت کافی نیست. موجودی فعلی: " + availableBalance);
                             return;
                         }
                     }
                 }
-
-                // برگرداندن موجودی قبلی
-                bankCardDao.updateBalance(oldTransaction.getCardId(), oldBalanceChange);
             }
 
-            // به‌روزرسانی تراکنش
             transactionDao.update(transaction);
 
-            // به‌روزرسانی تگ‌ها
             transactionTagDao.deleteByTransaction(transaction.getId());
             if (tagIds != null && !tagIds.isEmpty()) {
                 List<TransactionTag> transactionTags = new ArrayList<>();
@@ -122,26 +146,34 @@ public class TransactionRepository {
             }
 
             // اعمال موجودی جدید
-            long newBalanceChange = transaction.getType() == Transaction.TYPE_INCOME
-                    ? transaction.getAmount()
-                    : -transaction.getAmount();
-            bankCardDao.updateBalance(transaction.getCardId(), newBalanceChange);
-
-            if (listener != null) {
-                listener.onTransactionUpdated();
+            if (transaction.getType() == Transaction.TYPE_TRANSFER) {
+                bankCardDao.updateBalance(transaction.getCardId(), -transaction.getAmount());
+                if (transaction.getToCardId() != null)
+                    bankCardDao.updateBalance(transaction.getToCardId(), transaction.getAmount());
+            } else {
+                long newBalanceChange = transaction.getType() == Transaction.TYPE_INCOME
+                        ? transaction.getAmount()
+                        : -transaction.getAmount();
+                bankCardDao.updateBalance(transaction.getCardId(), newBalanceChange);
             }
+
+            if (listener != null) listener.onTransactionUpdated();
         });
     }
 
     public void delete(Transaction transaction) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
             // برگرداندن موجودی
-            long balanceChange = transaction.getType() == Transaction.TYPE_INCOME
-                    ? -transaction.getAmount()
-                    : transaction.getAmount();
-            bankCardDao.updateBalance(transaction.getCardId(), balanceChange);
-
-            // حذف تراکنش (تگ‌ها خودکار حذف می‌شوند)
+            if (transaction.getType() == Transaction.TYPE_TRANSFER) {
+                bankCardDao.updateBalance(transaction.getCardId(), transaction.getAmount());
+                if (transaction.getToCardId() != null)
+                    bankCardDao.updateBalance(transaction.getToCardId(), -transaction.getAmount());
+            } else {
+                long balanceChange = transaction.getType() == Transaction.TYPE_INCOME
+                        ? -transaction.getAmount()
+                        : transaction.getAmount();
+                bankCardDao.updateBalance(transaction.getCardId(), balanceChange);
+            }
             transactionDao.delete(transaction);
         });
     }
@@ -339,6 +371,36 @@ public class TransactionRepository {
      */
     public LiveData<List<Transaction>> getAllTransactionsByCategoryAndTagAndDateRange(long categoryId, long tagId, long startDate, long endDate) {
         return transactionDao.getAllTransactionsByCategoryAndTagAndDateRange(categoryId, tagId, startDate, endDate);
+    }
+
+    // ==================== کارت به کارت ====================
+
+    public LiveData<List<Transaction>> getTransfersByDateRange(long startDate, long endDate) {
+        return transactionDao.getTransfersByDateRange(startDate, endDate);
+    }
+
+    public LiveData<List<Transaction>> getTransfersByCategoryAndDateRange(long categoryId, long startDate, long endDate) {
+        return transactionDao.getTransfersByCategoryAndDateRange(categoryId, startDate, endDate);
+    }
+
+    public LiveData<List<Transaction>> getTransfersByTagAndDateRange(long tagId, long startDate, long endDate) {
+        return transactionDao.getTransfersByTagAndDateRange(tagId, startDate, endDate);
+    }
+
+    public LiveData<List<Transaction>> getTransfersByCategoryAndTagAndDateRange(long categoryId, long tagId, long startDate, long endDate) {
+        return transactionDao.getTransfersByCategoryAndTagAndDateRange(categoryId, tagId, startDate, endDate);
+    }
+
+    public LiveData<List<CategoryReport>> getTransferReportByCategory(long startDate, long endDate) {
+        return transactionDao.getTransferReportByCategory(startDate, endDate);
+    }
+
+    public LiveData<List<TagReport>> getTransferReportByTag(long startDate, long endDate) {
+        return transactionDao.getTransferReportByTag(startDate, endDate);
+    }
+
+    public LiveData<List<CombinedReport>> getTransferReportByCategoryAndTag(long startDate, long endDate) {
+        return transactionDao.getTransferReportByCategoryAndTag(startDate, endDate);
     }
 
     public interface OnTransactionInsertedListener {

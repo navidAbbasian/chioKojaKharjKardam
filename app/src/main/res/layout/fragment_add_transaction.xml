@@ -37,7 +37,7 @@
                     android:layout_height="48dp"
                     android:layout_weight="1"
                     android:text="@string/expense"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
                     app:cornerRadius="14dp"
                     android:checked="true" />
 
@@ -48,7 +48,17 @@
                     android:layout_height="48dp"
                     android:layout_weight="1"
                     android:text="@string/income"
-                    android:textSize="14sp"
+                    android:textSize="13sp"
+                    app:cornerRadius="14dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_transfer"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:text="@string/transfer_type"
+                    android:textSize="13sp"
                     app:cornerRadius="14dp" />
 
             </com.google.android.material.button.MaterialButtonToggleGroup>
@@ -95,25 +105,7 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- انتخاب دسته‌بندی -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:text="@string/select_category"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.02"
-            android:textColor="?attr/colorOnSurfaceVariant" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_categories"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:orientation="horizontal" />
-
-        <!-- انتخاب کارت -->
+        <!-- انتخاب کارت مبدا -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -132,7 +124,73 @@
             android:background="@drawable/spinner_background"
             android:padding="12dp" />
 
-        <!-- انتخاب تاریخ -->
+        <!-- کارت مقصد (فقط برای کارت به کارت) -->
+        <TextView
+            android:id="@+id/tv_to_card_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:text="@string/to_card"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.02"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone" />
+
+        <Spinner
+            android:id="@+id/spinner_to_card"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/spinner_background"
+            android:padding="12dp"
+            android:visibility="gone" />
+
+        <!-- دسته‌بندی و تگ‌ها (همیشه نمایش داده می‌شوند) -->
+        <LinearLayout
+            android:id="@+id/layout_category_tags"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- انتخاب دسته‌بندی -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="@string/select_category"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.02"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_categories"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal" />
+
+            <!-- تگ‌ها -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="@string/select_tags"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.02"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group_tags"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" />
+
+        </LinearLayout>
+
+        <!-- انتخاب تاریخ (همیشه نمایش داده می‌شود) -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/til_date"
             style="@style/Widget.App.TextInputLayout"
@@ -153,22 +211,6 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- تگ‌ها -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:text="@string/select_tags"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.02"
-            android:textColor="?attr/colorOnSurfaceVariant" />
-
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/chip_group_tags"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp" />
 
         <!-- دکمه ذخیره -->
         <com.google.android.material.button.MaterialButton

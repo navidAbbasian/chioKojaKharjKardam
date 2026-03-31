@@ -23,8 +23,9 @@ import androidx.room.PrimaryKey;
         indices = {@Index("cardId"), @Index("categoryId")})
 public class Transaction {
 
-    public static final int TYPE_EXPENSE = 0; // خرج
-    public static final int TYPE_INCOME = 1;  // درآمد
+    public static final int TYPE_EXPENSE = 0;  // خرج
+    public static final int TYPE_INCOME = 1;   // درآمد
+    public static final int TYPE_TRANSFER = 2; // کارت به کارت
 
     @PrimaryKey(autoGenerate = true)
     private long id;
@@ -32,7 +33,8 @@ public class Transaction {
     private long cardId;
     private Long categoryId; // nullable
     private long amount;
-    private int type; // 0: خرج, 1: درآمد
+    private int type; // 0: خرج, 1: درآمد, 2: کارت به کارت
+    private Long toCardId; // nullable - فقط برای نوع کارت به کارت
     private String description;
     private long date; // تاریخ تراکنش
     private long createdAt;
@@ -87,6 +89,14 @@ public class Transaction {
 
     public void setType(int type) {
         this.type = type;
+    }
+
+    public Long getToCardId() {
+        return toCardId;
+    }
+
+    public void setToCardId(Long toCardId) {
+        this.toCardId = toCardId;
     }
 
     public String getDescription() {

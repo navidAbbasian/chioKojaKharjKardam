@@ -126,7 +126,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="کارت:"
+                    android:text="@string/from_card_label"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <TextView
@@ -136,6 +136,45 @@
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     android:textColor="?attr/colorOnSurface" />
+
+            </LinearLayout>
+
+            <!-- کارت مقصد (فقط برای کارت به کارت) -->
+            <LinearLayout
+                android:id="@+id/layout_to_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginVertical="12dp"
+                    android:background="?attr/dividerHorizontal" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/to_card_label"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:id="@+id/tv_to_card"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:textColor="#2196F3"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
 
             </LinearLayout>
 

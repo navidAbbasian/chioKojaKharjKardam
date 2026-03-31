@@ -87,10 +87,14 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
 
             if (transaction.getType() == Transaction.TYPE_EXPENSE) {
                 tvAmount.setText("-" + CurrencyUtils.formatToman(transaction.getAmount()));
-                tvAmount.setTextColor(Color.parseColor("#F44336"));
-            } else {
+                tvAmount.setTextColor(Color.parseColor("#F44336")); // قرمز
+            } else if (transaction.getType() == Transaction.TYPE_INCOME) {
                 tvAmount.setText("+" + CurrencyUtils.formatToman(transaction.getAmount()));
-                tvAmount.setTextColor(Color.parseColor("#4CAF50"));
+                tvAmount.setTextColor(Color.parseColor("#4CAF50")); // سبز
+            } else {
+                // TYPE_TRANSFER - کارت به کارت
+                tvAmount.setText(CurrencyUtils.formatToman(transaction.getAmount()));
+                tvAmount.setTextColor(Color.parseColor("#2196F3")); // آبی
             }
         }
     }

@@ -173,15 +173,13 @@ public class ReportsFragment extends Fragment {
         // سوئیچ همه تراکنش‌ها
         switchAllTransactions.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                // حالت همه تراکنش‌ها: فیلترهای تفصیلی مخفی، گزارش‌ها مخفی
-                layoutDetailFilters.setVisibility(View.GONE);
+                 layoutDetailFilters.setVisibility(View.GONE);
                 rvReports.setVisibility(View.GONE);
                 layoutEmpty.setVisibility(View.GONE);
                 adapter.clearSelection();
                 viewModel.clearTransactionFilter();
                 viewModel.setTransactionType(ReportsViewModel.TRANSACTION_TYPE_ALL);
             } else {
-                // حالت فیلتر: فیلترهای تفصیلی نمایش داده می‌شوند
                 layoutDetailFilters.setVisibility(View.VISIBLE);
                 adapter.clearSelection();
                 viewModel.clearTransactionFilter();
@@ -229,8 +227,12 @@ public class ReportsFragment extends Fragment {
             if (isChecked) {
                 adapter.clearSelection();
                 viewModel.clearTransactionFilter();
-                if (checkedId == R.id.btn_expense_type) viewModel.setTransactionType(ReportsViewModel.TRANSACTION_TYPE_EXPENSE);
-                else if (checkedId == R.id.btn_income_type) viewModel.setTransactionType(ReportsViewModel.TRANSACTION_TYPE_INCOME);
+                if (checkedId == R.id.btn_expense_type)
+                    viewModel.setTransactionType(ReportsViewModel.TRANSACTION_TYPE_EXPENSE);
+                else if (checkedId == R.id.btn_income_type)
+                    viewModel.setTransactionType(ReportsViewModel.TRANSACTION_TYPE_INCOME);
+                else if (checkedId == R.id.btn_transfer_type)
+                    viewModel.setTransactionType(ReportsViewModel.TRANSACTION_TYPE_TRANSFER);
             }
         });
     }
