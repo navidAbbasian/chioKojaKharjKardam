@@ -13,6 +13,7 @@ import com.example.chiokojakharjkardam.data.database.entity.CombinedReport;
 import com.example.chiokojakharjkardam.data.database.entity.TagReport;
 import com.example.chiokojakharjkardam.data.database.entity.Transaction;
 import com.example.chiokojakharjkardam.data.repository.TransactionRepository;
+import com.example.chiokojakharjkardam.utils.PersianDateUtils;
 
 import java.util.Calendar;
 import java.util.List;
@@ -96,17 +97,15 @@ public class ReportsViewModel extends AndroidViewModel {
     }
 
     private void setDateRangeThisMonth() {
-        Calendar calendar = Calendar.getInstance();
-        // پایان ماه (الان)
-        long end = calendar.getTimeInMillis();
+        // تاریخ امروز به شمسی
+        int[] today = PersianDateUtils.getTodayJalali();
+        int jYear = today[0], jMonth = today[1];
 
-        // شروع ماه
-        calendar.set(Calendar.DAY_OF_MONTH, 1);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        long start = calendar.getTimeInMillis();
+        // اول ماه جاری شمسی
+        long start = PersianDateUtils.jalaliToTimestamp(jYear, jMonth, 1);
+
+        // آخر ماه جاری شمسی (23:59:59.999)
+        long end = persianEndOfMonth(jYear, jMonth);
 
         startDate.setValue(start);
         endDate.setValue(end);
@@ -114,17 +113,30 @@ public class ReportsViewModel extends AndroidViewModel {
     }
 
     private void setDateRangeLast3Months() {
-        Calendar calendar = Calendar.getInstance();
-        // پایان (الان)
-        long end = calendar.getTimeInMillis();
+        // تاریخ امروز به شمسی
+        int[] today = PersianDateUtils.getTodayJalali();
+        int jYear = today[0], jMonth = today[1];
 
-        // ۳ ماه قبل
-        calendar.add(Calendar.MONTH, -3);
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        long start = calendar.getTimeInMillis();
+        // ماه قبل از ماه جاری
+        int prevMonth = jMonth - 1;
+        int prevYear = jYear;
+        if (prevMonth < 1) {
+            prevMonth = 12;
+            prevYear = jYear - 1;
+        }
+
+        // پایان بازه: آخرین لحظه ماه قبل
+        long end = persianEndOfMonth(prevYear, prevMonth);
+
+        // شروع بازه: اول ماهی که ۳ ماه قبل‌تر از ماه قبل است
+        // مثال: ماه قبل = اسفند(12) → شروع = دی(10) همان سال
+        int startMonth = prevMonth - 2;
+        int startYear = prevYear;
+        if (startMonth < 1) {
+            startMonth += 12;
+            startYear--;
+        }
+        long start = PersianDateUtils.jalaliToTimestamp(startYear, startMonth, 1);
 
         startDate.setValue(start);
         endDate.setValue(end);
@@ -332,6 +344,13 @@ public class ReportsViewModel extends AndroidViewModel {
         return filteredTransactions;
     }
 
+    /** آیا فیلتر دسته‌بندی یا تگ فعال است (یعنی کاربر روی آیتم گزارش کلیک کرده) */
+    public boolean isFilterActive() {
+        Long catId = selectedCategoryId.getValue();
+        Long tagId = selectedTagId.getValue();
+        return (catId != null && catId > 0) || (tagId != null && tagId > 0);
+    }
+
     // متدهای تنظیم فیلتر برای نمایش تراکنش‌ها
     public void setCategoryFilter(long categoryId) {
         selectedCategoryId.setValue(categoryId);
@@ -369,5 +388,33 @@ public class ReportsViewModel extends AndroidViewModel {
 
         refreshTransactions(start, end, type, group);
     }
-}
 
+    // ---- کمک‌کننده‌های تاریخ شمسی ----
+
+    /** آخرین لحظه (23:59:59.999) آخرین روز ماه شمسی داده‌شده */
+    private static long persianEndOfMonth(int jYear, int jMonth) {
+        int lastDay = persianMonthLastDay(jYear, jMonth);
+        int[] greg = PersianDateUtils.jalaliToGregorian(jYear, jMonth, lastDay);
+        Calendar cal = Calendar.getInstance();
+        cal.set(greg[0], greg[1] - 1, greg[2], 23, 59, 59);
+        cal.set(Calendar.MILLISECOND, 999);
+        return cal.getTimeInMillis();
+    }
+
+    /** تعداد روزهای ماه شمسی */
+    private static int persianMonthLastDay(int jYear, int jMonth) {
+        if (jMonth <= 6) return 31;
+        if (jMonth <= 11) return 30;
+        return isPersianLeapYear(jYear) ? 30 : 29;
+    }
+
+    /** آیا سال شمسی کبیسه است؟ */
+    private static boolean isPersianLeapYear(int jYear) {
+        int[] leapRemainders = {1, 5, 9, 13, 17, 22, 26, 30};
+        int r = jYear % 33;
+        for (int leap : leapRemainders) {
+            if (r == leap) return true;
+        }
+        return false;
+    }
+}

@@ -173,19 +173,30 @@ public class ReportsFragment extends Fragment {
         // سوئیچ همه تراکنش‌ها
         switchAllTransactions.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                 layoutDetailFilters.setVisibility(View.GONE);
+                // حالت «همه تراکنش‌ها»: فیلترها مخفی، گزارش مخفی، لیست تراکنش‌ها نشان داده می‌شود
+                layoutDetailFilters.setVisibility(View.GONE);
                 rvReports.setVisibility(View.GONE);
                 layoutEmpty.setVisibility(View.GONE);
                 adapter.clearSelection();
                 viewModel.clearTransactionFilter();
                 viewModel.setTransactionType(ReportsViewModel.TRANSACTION_TYPE_ALL);
             } else {
+                // بازگشت به حالت گزارش‌گیری
                 layoutDetailFilters.setVisibility(View.VISIBLE);
+                // مخفی کردن کارت تراکنش‌ها تا زمانی که کاربر آیتمی انتخاب کند
+                cardTransactions.setVisibility(View.GONE);
+                btnExportPdf.setVisibility(View.GONE);
+                tvTransactionsCount.setText("");
                 adapter.clearSelection();
                 viewModel.clearTransactionFilter();
-                // بازگشت به نوع خرج
-                toggleTransactionType.check(R.id.btn_expense_type);
-                viewModel.setTransactionType(ReportsViewModel.TRANSACTION_TYPE_EXPENSE);
+                // بازگشت به نوع خرج (بدون فراخوانی مجدد setTransactionType چون toggle listener آن را صدا می‌زند)
+                if (toggleTransactionType.getCheckedButtonId() == R.id.btn_expense_type) {
+                    // دکمه قبلاً انتخاب شده → listener فایر نمی‌شود، دستی صدا می‌زنیم
+                    viewModel.setTransactionType(ReportsViewModel.TRANSACTION_TYPE_EXPENSE);
+                } else {
+                    toggleTransactionType.check(R.id.btn_expense_type);
+                    // listener فایر می‌شود و setTransactionType را صدا می‌زند
+                }
             }
         });
 
@@ -326,21 +337,46 @@ public class ReportsFragment extends Fragment {
         viewModel.getGroupBy().observe(getViewLifecycleOwner(), this::observeReportsForGroupBy);
 
         viewModel.getFilteredTransactions().observe(getViewLifecycleOwner(), transactions -> {
+            // کارت تراکنش‌ها فقط باید نمایش داده شود وقتی:
+            // ۱) سوئیچ «همه تراکنش‌ها» روشن است
+            // ۲) یا کاربر روی یک آیتم گزارش کلیک کرده (فیلتر فعال است)
+            boolean switchOn = switchAllTransactions.isChecked();
+            boolean filterActive = viewModel.isFilterActive();
+            boolean showCard = switchOn || filterActive;
+
             if (transactions != null && !transactions.isEmpty()) {
                 currentTransactions = transactions;
                 transactionAdapter.submitList(transactions);
-                rvTransactions.setVisibility(View.VISIBLE);
-                layoutEmptyTransactions.setVisibility(View.GONE);
-                cardTransactions.setVisibility(View.VISIBLE);
-                btnExportPdf.setVisibility(View.VISIBLE);
-                tvTransactionsCount.setText(getString(R.string.transaction_count_format, transactions.size()));
+
+                if (showCard) {
+                    rvTransactions.setVisibility(View.VISIBLE);
+                    layoutEmptyTransactions.setVisibility(View.GONE);
+                    cardTransactions.setVisibility(View.VISIBLE);
+                    btnExportPdf.setVisibility(View.VISIBLE);
+                    tvTransactionsCount.setText(getString(R.string.transaction_count_format, transactions.size()));
+                    // در حالت «همه تراکنش‌ها» مجموع را از لیست تراکنش‌ها محاسبه کن
+                    if (switchOn) {
+                        updateTotalAmountFromList(transactions);
+                    }
+                }
+                // اگر showCard=false است، کارت مخفی است و نیازی به تغییر نیست
             } else {
                 currentTransactions = new ArrayList<>();
-                rvTransactions.setVisibility(View.GONE);
-                layoutEmptyTransactions.setVisibility(View.VISIBLE);
-                cardTransactions.setVisibility(View.VISIBLE);
-                btnExportPdf.setVisibility(View.GONE);
-                tvTransactionsCount.setText("");
+                transactionAdapter.submitList(new ArrayList<>());
+
+                if (showCard) {
+                    rvTransactions.setVisibility(View.GONE);
+                    layoutEmptyTransactions.setVisibility(View.VISIBLE);
+                    cardTransactions.setVisibility(View.VISIBLE);
+                    btnExportPdf.setVisibility(View.GONE);
+                    tvTransactionsCount.setText("");
+                    if (switchOn) {
+                        tvTotalAmount.setText(numberFormat.format(0) + " " + getString(R.string.toman));
+                    }
+                } else {
+                    cardTransactions.setVisibility(View.GONE);
+                    btnExportPdf.setVisibility(View.GONE);
+                }
             }
         });
     }
@@ -362,7 +398,7 @@ public class ReportsFragment extends Fragment {
                         } else {
                             rvReports.setVisibility(View.GONE);
                             layoutEmpty.setVisibility(View.VISIBLE);
-                            tvTotalAmount.setText(numberFormat.format(0));
+                            tvTotalAmount.setText(numberFormat.format(0) + " " + getString(R.string.toman));
                         }
                     }
                 });
@@ -378,7 +414,7 @@ public class ReportsFragment extends Fragment {
                         } else {
                             rvReports.setVisibility(View.GONE);
                             layoutEmpty.setVisibility(View.VISIBLE);
-                            tvTotalAmount.setText(numberFormat.format(0));
+                            tvTotalAmount.setText(numberFormat.format(0) + " " + getString(R.string.toman));
                         }
                     }
                 });
@@ -394,7 +430,7 @@ public class ReportsFragment extends Fragment {
                         } else {
                             rvReports.setVisibility(View.GONE);
                             layoutEmpty.setVisibility(View.VISIBLE);
-                            tvTotalAmount.setText(numberFormat.format(0));
+                            tvTotalAmount.setText(numberFormat.format(0) + " " + getString(R.string.toman));
                         }
                     }
                 });
@@ -414,6 +450,22 @@ public class ReportsFragment extends Fragment {
     private void updateTotalAmount() {
         long total = adapter.getTotalAmount();
         tvTotalAmount.setText(numberFormat.format(total) + " " + getString(R.string.toman));
+    }
+
+    /** محاسبه مجموع مبالغ از لیست تراکنش‌ها (برای حالت «همه تراکنش‌ها») */
+    private void updateTotalAmountFromList(List<Transaction> transactions) {
+        long totalIncome = 0;
+        long totalExpense = 0;
+        for (Transaction t : transactions) {
+            if (t.getType() == Transaction.TYPE_INCOME) {
+                totalIncome += t.getAmount();
+            } else if (t.getType() == Transaction.TYPE_EXPENSE) {
+                totalExpense += t.getAmount();
+            }
+            // انتقال‌ها در محاسبه خالص لحاظ نمی‌شوند
+        }
+        long net = totalIncome - totalExpense;
+        tvTotalAmount.setText(numberFormat.format(net) + " " + getString(R.string.toman));
     }
 }
 

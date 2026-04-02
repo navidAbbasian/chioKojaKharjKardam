@@ -125,8 +125,8 @@ public interface TransactionDao {
             "SUM(t.amount) as totalAmount, COUNT(DISTINCT t.id) as transactionCount " +
             "FROM transactions t " +
             "LEFT JOIN categories c ON t.categoryId = c.id " +
-            "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
-            "INNER JOIN tags tg ON tt.tagId = tg.id " +
+            "LEFT JOIN transaction_tags tt ON t.id = tt.transactionId " +
+            "LEFT JOIN tags tg ON tt.tagId = tg.id " +
             "WHERE t.type = 0 AND t.date BETWEEN :startDate AND :endDate " +
             "GROUP BY t.categoryId, tg.id " +
             "ORDER BY totalAmount DESC")
@@ -140,8 +140,8 @@ public interface TransactionDao {
             "SUM(t.amount) as totalAmount, COUNT(DISTINCT t.id) as transactionCount " +
             "FROM transactions t " +
             "LEFT JOIN categories c ON t.categoryId = c.id " +
-            "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
-            "INNER JOIN tags tg ON tt.tagId = tg.id " +
+            "LEFT JOIN transaction_tags tt ON t.id = tt.transactionId " +
+            "LEFT JOIN tags tg ON tt.tagId = tg.id " +
             "WHERE t.type = 1 AND t.date BETWEEN :startDate AND :endDate " +
             "GROUP BY t.categoryId, tg.id " +
             "ORDER BY totalAmount DESC")
@@ -329,8 +329,8 @@ public interface TransactionDao {
             "SUM(t.amount) as totalAmount, COUNT(DISTINCT t.id) as transactionCount " +
             "FROM transactions t " +
             "LEFT JOIN categories c ON t.categoryId = c.id " +
-            "INNER JOIN transaction_tags tt ON t.id = tt.transactionId " +
-            "INNER JOIN tags tg ON tt.tagId = tg.id " +
+            "LEFT JOIN transaction_tags tt ON t.id = tt.transactionId " +
+            "LEFT JOIN tags tg ON tt.tagId = tg.id " +
             "WHERE t.type = 2 AND t.date BETWEEN :startDate AND :endDate " +
             "GROUP BY t.categoryId, tg.id " +
             "ORDER BY totalAmount DESC")

@@ -61,10 +61,13 @@ public class PdfExportManager {
                 int availH = PAGE_HEIGHT - MARGIN * 2 - headerSpace - footerSpace;
                 int rowsPerPage = Math.max(1, availH / ROW_H);
 
-                long totalExpense = 0, totalIncome = 0;
+                long totalExpense = 0, totalIncome = 0, totalTransfer = 0;
                 for (TransactionDetail d : details) {
-                    if (d.getTransaction().getType() == Transaction.TYPE_EXPENSE)
+                    int tType = d.getTransaction().getType();
+                    if (tType == Transaction.TYPE_EXPENSE)
                         totalExpense += d.getTransaction().getAmount();
+                    else if (tType == Transaction.TYPE_TRANSFER)
+                        totalTransfer += d.getTransaction().getAmount();
                     else
                         totalIncome += d.getTransaction().getAmount();
                 }
@@ -77,7 +80,7 @@ public class PdfExportManager {
                             PAGE_WIDTH, PAGE_HEIGHT, p + 1).create();
                     PdfDocument.Page page = pdf.startPage(info);
                     drawPage(page.getCanvas(), details, fmt, title, dateRange,
-                            p, totalPages, rowsPerPage, totalExpense, totalIncome);
+                            p, totalPages, rowsPerPage, totalExpense, totalIncome, totalTransfer);
                     pdf.finishPage(page);
                 }
 
@@ -101,25 +104,27 @@ public class PdfExportManager {
     private static void drawPage(Canvas cv, List<TransactionDetail> details,
                                   DecimalFormat fmt, String title, String dateRange,
                                   int pageNum, int totalPages, int rowsPerPage,
-                                  long totalExpense, long totalIncome) {
+                                  long totalExpense, long totalIncome, long totalTransfer) {
 
         // ---- Paints ----
-        Paint pTitle = makePaint("#1A237E", 18f, true, Paint.Align.CENTER);
-        Paint pSub   = makePaint("#546E7A", 10f, false, Paint.Align.CENTER);
-        Paint pSum   = makePaint("#1A237E", 10f, true,  Paint.Align.CENTER);
-        Paint pColHd = makePaint("#FFFFFF", 10f, true,  Paint.Align.CENTER);
-        Paint pRow   = makePaint("#212121", 9f,  false, Paint.Align.CENTER);
-        Paint pExp   = makePaint("#C62828", 9f,  false, Paint.Align.CENTER);
-        Paint pInc   = makePaint("#2E7D32", 9f,  false, Paint.Align.CENTER);
-        Paint pFooter= makePaint("#90A4AE", 8f,  false, Paint.Align.CENTER);
+        Paint pTitle    = makePaint("#1A237E", 18f, true, Paint.Align.CENTER);
+        Paint pSub      = makePaint("#546E7A", 10f, false, Paint.Align.CENTER);
+        Paint pSum      = makePaint("#1A237E", 10f, true,  Paint.Align.CENTER);
+        Paint pColHd    = makePaint("#FFFFFF", 10f, true,  Paint.Align.CENTER);
+        Paint pRow      = makePaint("#212121", 9f,  false, Paint.Align.CENTER);
+        Paint pExp      = makePaint("#C62828", 9f,  false, Paint.Align.CENTER);
+        Paint pInc      = makePaint("#2E7D32", 9f,  false, Paint.Align.CENTER);
+        Paint pTransfer = makePaint("#1565C0", 9f,  false, Paint.Align.CENTER);
+        Paint pFooter   = makePaint("#90A4AE", 8f,  false, Paint.Align.CENTER);
 
-        Paint pBgColHd = solidPaint("#1565C0");
-        Paint pBgSum   = solidPaint("#E8EAF6");
-        Paint pBgAlt   = solidPaint("#F5F5F5");
-        Paint pBgExp   = solidPaint("#FFEBEE");
-        Paint pBgInc   = solidPaint("#E8F5E9");
-        Paint pLine    = strokePaint("#CFD8DC", 0.8f);
-        Paint pBorder  = strokePaint("#90A4AE", 0.5f);
+        Paint pBgColHd   = solidPaint("#1565C0");
+        Paint pBgSum     = solidPaint("#E8EAF6");
+        Paint pBgAlt     = solidPaint("#F5F5F5");
+        Paint pBgExp     = solidPaint("#FFEBEE");
+        Paint pBgInc     = solidPaint("#E8F5E9");
+        Paint pBgTransfer= solidPaint("#E3F2FD");
+        Paint pLine      = strokePaint("#CFD8DC", 0.8f);
+        Paint pBorder    = strokePaint("#90A4AE", 0.5f);
 
         int x0 = MARGIN; // x شروع جدول
 
@@ -132,17 +137,24 @@ public class PdfExportManager {
         cv.drawText(dateRange, PAGE_WIDTH / 2f, y, pSub);
         y += 10;
 
-        // ---- خلاصه (فقط صفحه اول) ----
+            // ---- خلاصه (فقط صفحه اول) ----
         if (pageNum == 0) {
             RectF sumRect = new RectF(MARGIN, y, PAGE_WIDTH - MARGIN, y + 32);
             cv.drawRoundRect(sumRect, 6, 6, pBgSum);
             y += 20;
-            String sumText =
-                "جمع خرج: " + persian(fmt.format(totalExpense / 10)) + " تومان" +
-                "     |     " +
-                "جمع درآمد: " + persian(fmt.format(totalIncome / 10)) + " تومان" +
-                "     |     " +
-                "تعداد: " + persian(String.valueOf(details.size())) + " تراکنش";
+            String sumText;
+            if (totalTransfer > 0) {
+                sumText = "خرج: " + persian(fmt.format(totalExpense)) + " ت" +
+                        "  |  درآمد: " + persian(fmt.format(totalIncome)) + " ت" +
+                        "  |  انتقال: " + persian(fmt.format(totalTransfer)) + " ت" +
+                        "  |  تعداد: " + persian(String.valueOf(details.size())) + " تراکنش";
+            } else {
+                sumText = "جمع خرج: " + persian(fmt.format(totalExpense)) + " تومان" +
+                        "     |     " +
+                        "جمع درآمد: " + persian(fmt.format(totalIncome)) + " تومان" +
+                        "     |     " +
+                        "تعداد: " + persian(String.valueOf(details.size())) + " تراکنش";
+            }
             cv.drawText(sumText, PAGE_WIDTH / 2f, y, pSum);
             y += 16;
         } else {
@@ -176,11 +188,21 @@ public class PdfExportManager {
             TransactionDetail d = details.get(i);
             Transaction t = d.getTransaction();
             boolean isExp = t.getType() == Transaction.TYPE_EXPENSE;
+            boolean isTransfer = t.getType() == Transaction.TYPE_TRANSFER;
 
             // پس‌زمینه سطر
-            Paint bgRow = isExp ? pBgExp : pBgInc;
+            Paint bgRow;
+            if (isTransfer) bgRow = pBgTransfer;
+            else if (isExp) bgRow = pBgExp;
+            else bgRow = pBgInc;
             if ((i - startIdx) % 2 == 1) bgRow = pBgAlt;
             cv.drawRect(x0, y, x0 + totalColW(), y + ROW_H, bgRow);
+
+            // نوع تراکنش
+            String typeLabel;
+            if (isTransfer) typeLabel = "انتقال";
+            else if (isExp) typeLabel = "خرج";
+            else typeLabel = "درآمد";
 
             // داده‌های هر سطر
             String[] cells = {
@@ -189,19 +211,19 @@ public class PdfExportManager {
                 truncate(t.getDescription(), 22),
                 truncate(d.getCategoryName(), 16),
                 truncate(d.getTagNames(), 20),
-                isExp ? "خرج" : "درآمد",
-                persian(fmt.format(t.getAmount() / 10))
+                typeLabel,
+                persian(fmt.format(t.getAmount()))
             };
 
-            Paint textPaint = isExp ? pExp : pInc;
-            if ((i - startIdx) % 2 == 1) textPaint = pRow;
-
+            // رنگ متن پیش‌فرض سطر (استفاده در ستون‌ها از cp تعیین می‌شود)
             colX = x0;
             float textY = y + ROW_H - 8f;
             for (int c = 0; c < COL_W.length; c++) {
                 float cx = colX + COL_W[c] / 2f;
-                // ستون مبلغ با رنگ خرج/درآمد
-                Paint cp = (c == COL_W.length - 1 || c == 5) ? (isExp ? pExp : pInc) : pRow;
+                // ستون مبلغ و نوع با رنگ نوع تراکنش
+                Paint cp = (c == COL_W.length - 1 || c == 5)
+                        ? (isTransfer ? pTransfer : (isExp ? pExp : pInc))
+                        : pRow;
                 cv.drawText(cells[c], cx, textY, cp);
                 colX += COL_W[c];
             }
