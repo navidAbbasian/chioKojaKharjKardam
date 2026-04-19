@@ -23,15 +23,26 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      # ── ۳. دسترسی اجرا به Gradle ─────────────────────────────────────────
+      # ── ۳. دانلود gradle-wrapper.jar (در صورت نبودن در repo) ───────────────
+      - name: Download Gradle wrapper jar if missing
+        run: |
+          JAR=gradle/wrapper/gradle-wrapper.jar
+          if [ ! -f "$JAR" ]; then
+            echo "gradle-wrapper.jar not found, downloading..."
+            mkdir -p gradle/wrapper
+            curl -fsSL "https://github.com/gradle/gradle/raw/v8.13.0/gradle/wrapper/gradle-wrapper.jar" \
+              -o "$JAR"
+          fi
+
+      # ── ۴. دسترسی اجرا به Gradle ─────────────────────────────────────────
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # ── ۴. بیلد APK دیباگ ────────────────────────────────────────────────
+      # ── ۵. بیلد APK دیباگ ────────────────────────────────────────────────
       - name: Build Debug APK
         run: ./gradlew assembleDebug --no-daemon
 
-      # ── ۵. پیدا کردن مسیر APK و تغییر نامش به اسم تگ ────────────────────
+      # ── ۷. پیدا کردن مسیر APK و تغییر نامش به اسم تگ ────────────────────
       - name: Rename APK with tag version
         run: |
           TAG=${GITHUB_REF#refs/tags/}
@@ -41,7 +52,7 @@ jobs:
           echo "APK_PATH=app/build/outputs/apk/debug/${NEW_NAME}" >> $GITHUB_ENV
           echo "TAG=$TAG" >> $GITHUB_ENV
 
-      # ── ۶. ساخت Release و آپلود APK ──────────────────────────────────────
+      # ── ۸. ساخت Release و آپلود APK ──────────────────────────────────────
       - name: Create GitHub Release and upload APK
         uses: softprops/action-gh-release@v2
         with:

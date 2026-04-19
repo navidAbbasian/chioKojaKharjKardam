@@ -41,8 +41,7 @@ crashlytics.properties
 # Google services
 google-services.json
 
-# Gradle wrapper
-gradle-wrapper.jar
+# gradle-wrapper.jar intentionally tracked (needed for CI/CD)
 
 # Kotlin cache
 .kotlinc/
