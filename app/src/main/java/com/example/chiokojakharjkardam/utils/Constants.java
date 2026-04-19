@@ -5,6 +5,10 @@ package com.example.chiokojakharjkardam.utils;
  */
 public class Constants {
 
+    // ── Supabase ── fill these from your Supabase project Settings → API
+    public static final String SUPABASE_URL     = "https://tsxcxjpbxjqqwntvcypp.supabase.co";
+    public static final String SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRzeGN4anBieGpxcXdudHZjeXBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMjY2OTcsImV4cCI6MjA5MTYwMjY5N30.fzbSKsz7AmBpUCzLAvyJSvmX7eJW3PLxmqofgceZNYo";
+
     // Notification
     public static final String NOTIFICATION_CHANNEL_ID = "bill_reminder_channel";
     public static final String NOTIFICATION_CHANNEL_NAME = "یادآوری قبوض";

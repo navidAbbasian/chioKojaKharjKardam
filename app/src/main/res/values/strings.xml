@@ -1,6 +1,10 @@
 <resources>
     <string name="app_name">چیو کجا خرج کردم</string>
 
+    <!-- Network status -->
+    <string name="offline_status">آفلاین</string>
+    <string name="offline_message">اتصال اینترنت برقرار نیست</string>
+
     <!-- Navigation -->
     <string name="nav_home">داشبورد</string>
     <string name="nav_transactions">تراکنش‌ها</string>

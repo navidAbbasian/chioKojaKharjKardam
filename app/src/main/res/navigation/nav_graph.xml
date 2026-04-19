@@ -87,7 +87,18 @@
         <action
             android:id="@+id/action_settings_to_clearData"
             app:destination="@id/clearDataFragment" />
+
+        <action
+            android:id="@+id/action_settings_to_cloudSync"
+            app:destination="@id/cloudSyncFragment" />
     </fragment>
+
+    <!-- همگام‌سازی ابری -->
+    <fragment
+        android:id="@+id/cloudSyncFragment"
+        android:name="com.example.chiokojakharjkardam.ui.sync.CloudSyncFragment"
+        android:label="همگام‌سازی ابری"
+        tools:layout="@layout/fragment_cloud_sync" />
 
     <!-- حذف اطلاعات -->
     <fragment
