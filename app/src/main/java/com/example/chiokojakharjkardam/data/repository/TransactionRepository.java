@@ -1,90 +1,167 @@
 package com.example.chiokojakharjkardam.data.repository;
 
 import android.app.Application;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.Toast;
 
 import androidx.lifecycle.LiveData;
 
 import com.example.chiokojakharjkardam.data.database.AppDatabase;
 import com.example.chiokojakharjkardam.data.database.dao.BankCardDao;
+import com.example.chiokojakharjkardam.data.database.dao.TagDao;
 import com.example.chiokojakharjkardam.data.database.dao.TransactionDao;
 import com.example.chiokojakharjkardam.data.database.dao.TransactionTagDao;
+import com.example.chiokojakharjkardam.data.database.dao.PendingDeleteDao;
 import com.example.chiokojakharjkardam.data.database.entity.BankCard;
 import com.example.chiokojakharjkardam.data.database.entity.CategoryReport;
 import com.example.chiokojakharjkardam.data.database.entity.CombinedReport;
+import com.example.chiokojakharjkardam.data.database.entity.PendingDelete;
+import com.example.chiokojakharjkardam.data.database.entity.Tag;
 import com.example.chiokojakharjkardam.data.database.entity.TagReport;
 import com.example.chiokojakharjkardam.data.database.entity.Transaction;
 import com.example.chiokojakharjkardam.data.database.entity.TransactionTag;
+import com.example.chiokojakharjkardam.data.remote.RemoteDataSource;
+import com.example.chiokojakharjkardam.data.remote.model.RemoteTransaction;
+import com.example.chiokojakharjkardam.utils.NetworkMonitor;
+import com.example.chiokojakharjkardam.utils.SessionManager;
+import com.example.chiokojakharjkardam.utils.SyncManager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TransactionRepository {
 
     private final TransactionDao transactionDao;
     private final TransactionTagDao transactionTagDao;
     private final BankCardDao bankCardDao;
+    private final TagDao tagDao;
+    private final PendingDeleteDao pendingDeleteDao;
+    private final Application application;
+    private final RemoteDataSource remote;
+    private final SessionManager session;
 
     public TransactionRepository(Application application) {
+        this.application = application;
         AppDatabase db = AppDatabase.getDatabase(application);
-        transactionDao = db.transactionDao();
+        transactionDao    = db.transactionDao();
         transactionTagDao = db.transactionTagDao();
-        bankCardDao = db.bankCardDao();
+        bankCardDao       = db.bankCardDao();
+        tagDao            = db.tagDao();
+        pendingDeleteDao  = db.pendingDeleteDao();
+        remote  = RemoteDataSource.getInstance();
+        session = SessionManager.getInstance();
     }
 
     /**
-     * ثبت تراکنش جدید همراه با به‌روزرسانی موجودی کارت
+     * ثبت تراکنش جدید همراه با به‌روزرسانی موجودی کارت (offline-first)
+     * همیشه ابتدا در Room ذخیره می‌شود؛ اگر آنلاین بود، فوری به Supabase ارسال می‌شود.
      */
     public void insertWithBalanceUpdate(Transaction transaction, List<Long> tagIds,
                                          OnTransactionInsertedListener listener,
                                          OnTransactionErrorListener errorListener) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
-            // بررسی موجودی کارت برای تراکنش‌های خرج و کارت به کارت
+            // بررسی موجودی از Room (بدون نیاز به اینترنت)
             if (transaction.getType() == Transaction.TYPE_EXPENSE
                     || transaction.getType() == Transaction.TYPE_TRANSFER) {
                 BankCard card = bankCardDao.getCardByIdSync(transaction.getCardId());
                 if (card != null && card.getBalance() < transaction.getAmount()) {
-                    if (errorListener != null) {
+                    if (errorListener != null)
                         errorListener.onError("موجودی کارت کافی نیست. موجودی فعلی: " + card.getBalance());
-                    }
                     return;
                 }
-                // بررسی کارت مقصد برای کارت به کارت
                 if (transaction.getType() == Transaction.TYPE_TRANSFER
-                        && (transaction.getToCardId() == null || transaction.getToCardId() == transaction.getCardId())) {
-                    if (errorListener != null) {
+                        && (transaction.getToCardId() == null
+                            || transaction.getToCardId() == transaction.getCardId())) {
+                    if (errorListener != null)
                         errorListener.onError("کارت مقصد باید متفاوت از کارت مبدا باشد");
-                    }
                     return;
                 }
             }
 
-            // ثبت تراکنش
-            long transactionId = transactionDao.insert(transaction);
+            // ۱. ذخیره در Room (offline-first) با وضعیت SYNC_NEW
+            transaction.setPendingSync(Transaction.SYNC_NEW);
+            long localId = transactionDao.insert(transaction);
+            transaction.setId(localId);
 
-            // ثبت تگ‌ها
+            // ۲. ذخیره تگ‌ها در Room
             if (tagIds != null && !tagIds.isEmpty()) {
-                List<TransactionTag> transactionTags = new ArrayList<>();
-                for (Long tagId : tagIds) {
-                    transactionTags.add(new TransactionTag(transactionId, tagId));
-                }
-                transactionTagDao.insertAll(transactionTags);
+                List<TransactionTag> txTags = new ArrayList<>();
+                for (Long tagId : tagIds) txTags.add(new TransactionTag(localId, tagId));
+                transactionTagDao.insertAll(txTags);
             }
 
-            // به‌روزرسانی موجودی
+            // ۳. به‌روزرسانی موجودی محلی با محاسبه مجدد از تراکنش‌ها
+            bankCardDao.recalculateBalanceFromTransactions(transaction.getCardId());
             if (transaction.getType() == Transaction.TYPE_TRANSFER) {
-                // کارت به کارت: از مبدا کم کن، به مقصد اضافه کن
-                bankCardDao.updateBalance(transaction.getCardId(), -transaction.getAmount());
-                bankCardDao.updateBalance(transaction.getToCardId(), transaction.getAmount());
-            } else {
-                long balanceChange = transaction.getType() == Transaction.TYPE_INCOME
-                        ? transaction.getAmount()
-                        : -transaction.getAmount();
-                bankCardDao.updateBalance(transaction.getCardId(), balanceChange);
+                bankCardDao.recalculateBalanceFromTransactions(transaction.getToCardId());
             }
 
-            if (listener != null) {
-                listener.onTransactionInserted(transactionId);
+            // ۴. اطلاع‌رسانی به UI
+            if (listener != null) listener.onTransactionInserted(localId);
+
+            // Auto-sync trigger
+            SyncManager.getInstance().triggerAutoSync();
+
+            // ۵. اگر آنلاین بود، فوراً به Supabase ارسال کن
+            if (NetworkMonitor.getInstance().isOnline() && session.hasFamilyId()) {
+                RemoteTransaction rt = new RemoteTransaction(transaction, session.getFamilyId(), session.getUserId());
+                rt.id = null;
+                // Remap local Room FK IDs to Supabase IDs
+                BankCard card = bankCardDao.getCardByIdSync(transaction.getCardId());
+                if (card != null && card.getSupabaseId() > 0) rt.cardId = card.getSupabaseId();
+                if (transaction.getCategoryId() != null) {
+                    com.example.chiokojakharjkardam.data.database.entity.Category cat =
+                            AppDatabase.getDatabase(application).categoryDao().getCategoryByIdSync(transaction.getCategoryId());
+                    if (cat != null && cat.getSupabaseId() > 0) rt.categoryId = cat.getSupabaseId();
+                }
+                if (transaction.getToCardId() != null) {
+                    BankCard toCard = bankCardDao.getCardByIdSync(transaction.getToCardId());
+                    if (toCard != null && toCard.getSupabaseId() > 0) rt.toCardId = toCard.getSupabaseId();
+                }
+                remote.insertTransaction(rt, new RemoteDataSource.Callback<RemoteTransaction>() {
+                    @Override public void onSuccess(RemoteTransaction created) {
+                        AppDatabase.databaseWriteExecutor.execute(() -> {
+                            transactionDao.updateSupabaseId(localId, created.id);
+                            // ارسال تگ‌ها به Supabase
+                            if (tagIds != null) {
+                                for (Long tagId : tagIds) {
+                                    Tag tag = tagDao.getTagByIdSync(tagId);
+                                    long supabaseTagId = (tag != null && tag.getSupabaseId() > 0)
+                                            ? tag.getSupabaseId() : 0;
+                                    if (supabaseTagId > 0) {
+                                        remote.insertTransactionTag(created.id, supabaseTagId,
+                                                new RemoteDataSource.Callback<Void>() {
+                                                    @Override public void onSuccess(Void v) {}
+                                                    @Override public void onError(String m) {}
+                                                });
+                                    }
+                                }
+                            }
+                            syncCardBalanceRemote(transaction.getCardId());
+                            if (transaction.getType() == Transaction.TYPE_TRANSFER) {
+                                syncCardBalanceRemote(transaction.getToCardId());
+                            }
+                        });
+                    }
+                    @Override public void onError(String msg) {
+                        // تراکنش در Room ذخیره شده با SYNC_NEW؛ SyncManager بعداً آپلود می‌کند
+                    }
+                });
             }
+        });
+    }
+
+    private void syncCardBalanceRemote(long cardId) {
+        BankCard card = bankCardDao.getCardByIdSync(cardId);
+        if (card == null || card.getSupabaseId() == 0) return;
+        Map<String, Object> upd = new HashMap<>();
+        upd.put("balance", card.getBalance());
+        remote.updateBankCard(card.getSupabaseId(), upd, new RemoteDataSource.Callback<Void>() {
+            @Override public void onSuccess(Void v) {}
+            @Override public void onError(String m) {}
         });
     }
 
@@ -95,45 +172,41 @@ public class TransactionRepository {
             Transaction oldTransaction = transactionDao.getTransactionByIdSync(transaction.getId());
 
             if (oldTransaction != null) {
-                // برگرداندن موجودی قبلی
-                if (oldTransaction.getType() == Transaction.TYPE_TRANSFER) {
-                    bankCardDao.updateBalance(oldTransaction.getCardId(), oldTransaction.getAmount());
-                    if (oldTransaction.getToCardId() != null) {
-                        bankCardDao.updateBalance(oldTransaction.getToCardId(), -oldTransaction.getAmount());
-                    }
-                } else {
-                    long oldBalanceChange = oldTransaction.getType() == Transaction.TYPE_INCOME
-                            ? -oldTransaction.getAmount()
-                            : oldTransaction.getAmount();
-                    bankCardDao.updateBalance(oldTransaction.getCardId(), oldBalanceChange);
-                }
-
-                // بررسی موجودی برای تراکنش جدید
+                // بررسی موجودی برای تراکنش جدید بدون تغییر موقت در DB
                 if (transaction.getType() == Transaction.TYPE_EXPENSE
                         || transaction.getType() == Transaction.TYPE_TRANSFER) {
                     BankCard card = bankCardDao.getCardByIdSync(transaction.getCardId());
                     if (card != null) {
-                        long availableBalance = card.getBalance();
-                        if (availableBalance < transaction.getAmount()) {
-                            // برگرداندن تغییر قبلی که دادیم
-                            if (oldTransaction.getType() == Transaction.TYPE_TRANSFER) {
-                                bankCardDao.updateBalance(oldTransaction.getCardId(), -oldTransaction.getAmount());
-                                if (oldTransaction.getToCardId() != null)
-                                    bankCardDao.updateBalance(oldTransaction.getToCardId(), oldTransaction.getAmount());
-                            } else {
-                                long revert = oldTransaction.getType() == Transaction.TYPE_INCOME
-                                        ? oldTransaction.getAmount()
-                                        : -oldTransaction.getAmount();
-                                bankCardDao.updateBalance(oldTransaction.getCardId(), revert);
+                        long available = card.getBalance();
+                        // اگر کارت همان کارت قبلی است، اثر تراکنش قدیمی را از موجودی حذف می‌کنیم
+                        if (transaction.getCardId() == oldTransaction.getCardId()) {
+                            if (oldTransaction.getType() == Transaction.TYPE_INCOME) {
+                                available -= oldTransaction.getAmount();
+                            } else if (oldTransaction.getType() == Transaction.TYPE_EXPENSE
+                                    || oldTransaction.getType() == Transaction.TYPE_TRANSFER) {
+                                available += oldTransaction.getAmount();
                             }
+                        }
+                        if (available < transaction.getAmount()) {
                             if (errorListener != null)
-                                errorListener.onError("موجودی کارت کافی نیست. موجودی فعلی: " + availableBalance);
+                                errorListener.onError("موجودی کارت کافی نیست. موجودی فعلی: " + card.getBalance());
                             return;
                         }
                     }
                 }
             }
 
+            // حفظ supabaseId از رکورد قدیمی
+            if (oldTransaction != null && oldTransaction.getSupabaseId() != null) {
+                transaction.setSupabaseId(oldTransaction.getSupabaseId());
+            }
+
+            // ذخیره در Room
+            if (NetworkMonitor.getInstance().isOnline() && transaction.getSupabaseId() != null) {
+                transaction.setPendingSync(Transaction.SYNC_DONE);
+            } else {
+                transaction.setPendingSync(Transaction.SYNC_UPDATE);
+            }
             transactionDao.update(transaction);
 
             transactionTagDao.deleteByTransaction(transaction.getId());
@@ -145,36 +218,101 @@ public class TransactionRepository {
                 transactionTagDao.insertAll(transactionTags);
             }
 
-            // اعمال موجودی جدید
-            if (transaction.getType() == Transaction.TYPE_TRANSFER) {
-                bankCardDao.updateBalance(transaction.getCardId(), -transaction.getAmount());
-                if (transaction.getToCardId() != null)
-                    bankCardDao.updateBalance(transaction.getToCardId(), transaction.getAmount());
-            } else {
-                long newBalanceChange = transaction.getType() == Transaction.TYPE_INCOME
-                        ? transaction.getAmount()
-                        : -transaction.getAmount();
-                bankCardDao.updateBalance(transaction.getCardId(), newBalanceChange);
+            // محاسبه مجدد موجودی از تراکنش‌ها (جایگزین updateBalance دلتایی)
+            bankCardDao.recalculateBalanceFromTransactions(transaction.getCardId());
+            if (oldTransaction != null && oldTransaction.getCardId() != transaction.getCardId()) {
+                bankCardDao.recalculateBalanceFromTransactions(oldTransaction.getCardId());
+            }
+            if (transaction.getType() == Transaction.TYPE_TRANSFER && transaction.getToCardId() != null) {
+                bankCardDao.recalculateBalanceFromTransactions(transaction.getToCardId());
+            }
+            if (oldTransaction != null && oldTransaction.getType() == Transaction.TYPE_TRANSFER
+                    && oldTransaction.getToCardId() != null
+                    && !oldTransaction.getToCardId().equals(transaction.getToCardId())) {
+                bankCardDao.recalculateBalanceFromTransactions(oldTransaction.getToCardId());
             }
 
             if (listener != null) listener.onTransactionUpdated();
+
+            // Auto-sync trigger
+            SyncManager.getInstance().triggerAutoSync();
+            if (NetworkMonitor.getInstance().isOnline() && transaction.getSupabaseId() != null) {
+                // Remap local category ID to Supabase ID
+                Long supabaseCatId = null;
+                if (transaction.getCategoryId() != null) {
+                    com.example.chiokojakharjkardam.data.database.entity.Category cat =
+                            AppDatabase.getDatabase(application).categoryDao().getCategoryByIdSync(transaction.getCategoryId());
+                    if (cat != null && cat.getSupabaseId() > 0) supabaseCatId = cat.getSupabaseId();
+                }
+                // Remap local card ID to Supabase ID
+                long supabaseCardId = transaction.getCardId();
+                BankCard cardForSync = bankCardDao.getCardByIdSync(transaction.getCardId());
+                if (cardForSync != null && cardForSync.getSupabaseId() > 0) supabaseCardId = cardForSync.getSupabaseId();
+                Long supabaseToCardId = null;
+                if (transaction.getToCardId() != null) {
+                    BankCard toCardForSync = bankCardDao.getCardByIdSync(transaction.getToCardId());
+                    if (toCardForSync != null && toCardForSync.getSupabaseId() > 0) supabaseToCardId = toCardForSync.getSupabaseId();
+                }
+
+                Map<String, Object> upd = new HashMap<>();
+                upd.put("amount", transaction.getAmount());
+                upd.put("type", transaction.getType());
+                upd.put("description", transaction.getDescription());
+                upd.put("date", transaction.getDate());
+                upd.put("category_id", supabaseCatId);
+                upd.put("card_id", supabaseCardId);
+                upd.put("to_card_id", supabaseToCardId);
+                remote.updateTransaction(transaction.getSupabaseId(), upd,
+                        new RemoteDataSource.Callback<Void>() {
+                            @Override public void onSuccess(Void v) {
+                                syncCardBalanceRemote(transaction.getCardId());
+                                if (transaction.getType() == Transaction.TYPE_TRANSFER
+                                        && transaction.getToCardId() != null) {
+                                    syncCardBalanceRemote(transaction.getToCardId());
+                                }
+                            }
+                            @Override public void onError(String msg) {
+                                AppDatabase.databaseWriteExecutor.execute(() ->
+                                        transactionDao.updateSyncStatus(
+                                                transaction.getId(), Transaction.SYNC_UPDATE));
+                            }
+                        });
+            }
         });
     }
 
     public void delete(Transaction transaction) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
-            // برگرداندن موجودی
-            if (transaction.getType() == Transaction.TYPE_TRANSFER) {
-                bankCardDao.updateBalance(transaction.getCardId(), transaction.getAmount());
-                if (transaction.getToCardId() != null)
-                    bankCardDao.updateBalance(transaction.getToCardId(), -transaction.getAmount());
-            } else {
-                long balanceChange = transaction.getType() == Transaction.TYPE_INCOME
-                        ? -transaction.getAmount()
-                        : transaction.getAmount();
-                bankCardDao.updateBalance(transaction.getCardId(), balanceChange);
-            }
+            // حذف تراکنش اول، سپس محاسبه مجدد موجودی از تراکنش‌ها
             transactionDao.delete(transaction);
+
+            bankCardDao.recalculateBalanceFromTransactions(transaction.getCardId());
+            if (transaction.getType() == Transaction.TYPE_TRANSFER && transaction.getToCardId() != null) {
+                bankCardDao.recalculateBalanceFromTransactions(transaction.getToCardId());
+            }
+
+            // Auto-sync trigger
+            SyncManager.getInstance().triggerAutoSync();
+
+            String supabaseId = transaction.getSupabaseId();
+            if (supabaseId != null) {
+                if (NetworkMonitor.getInstance().isOnline()) {
+                    remote.deleteTransaction(supabaseId, new RemoteDataSource.Callback<Void>() {
+                        @Override public void onSuccess(Void v) {
+                            syncCardBalanceRemote(transaction.getCardId());
+                        }
+                        @Override public void onError(String m) {
+                            // ذخیره در صف حذف برای بعد
+                            AppDatabase.databaseWriteExecutor.execute(() ->
+                                    pendingDeleteDao.insert(new PendingDelete(
+                                            PendingDelete.TYPE_TRANSACTION, supabaseId)));
+                        }
+                    });
+                } else {
+                    // آفلاین: ثبت در صف حذف
+                    pendingDeleteDao.insert(new PendingDelete(PendingDelete.TYPE_TRANSACTION, supabaseId));
+                }
+            }
         });
     }
 
@@ -224,6 +362,10 @@ public class TransactionRepository {
 
     public LiveData<Long> getTotalIncomeInRange(long startDate, long endDate) {
         return transactionDao.getTotalIncomeByDateRange(startDate, endDate);
+    }
+
+    public LiveData<Long> getTotalTransferInRange(long startDate, long endDate) {
+        return transactionDao.getTotalTransferByDateRange(startDate, endDate);
     }
 
     public List<Long> getTagIdsByTransaction(long transactionId) {
@@ -415,4 +557,8 @@ public class TransactionRepository {
         void onError(String errorMessage);
     }
 }
+
+
+
+
 
