@@ -8,6 +8,14 @@
     android:orientation="vertical"
     android:padding="24dp">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="شما به عنوان سرپرست خانواده ثبت خواهید شد"
+        android:textSize="13sp"
+        android:textColor="?attr/colorOnSurfaceVariant" />
+
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/til_family_name"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
@@ -18,24 +26,6 @@
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_family_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPersonName"
-            android:maxLines="1" />
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/til_owner_name"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:hint="@string/owner_name"
-        app:startIconDrawable="@drawable/ic_person">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/et_owner_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPersonName"
