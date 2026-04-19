@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'   # هر تگی که با v شروع بشه — مثل v1.00، v1.10، v2.0
 
+permissions:
+  contents: write   # لازمه برای ساخت Release و آپلود فایل
+
 jobs:
   build-and-release:
     name: Build APK and publish GitHub Release
