@@ -14,11 +14,18 @@ public class Category {
     @PrimaryKey(autoGenerate = true)
     private long id;
 
+    private long familyId;   // Supabase-synced family scope
     private String name;
     private String icon;
     private String color;
     private int type; // 0: خرج, 1: درآمد, 2: هردو
     private boolean isDefault;
+
+    /** Supabase cloud ID; 0 = not yet uploaded */
+    private long supabaseId = 0;
+
+    /** 0=synced, 1=new, 2=update */
+    private int pendingSync = 0;
 
     public Category(String name, String icon, String color, int type, boolean isDefault) {
         this.name = name;
@@ -42,6 +49,9 @@ public class Category {
     public void setId(long id) {
         this.id = id;
     }
+
+    public long getFamilyId() { return familyId; }
+    public void setFamilyId(long familyId) { this.familyId = familyId; }
 
     public String getName() {
         return name;
@@ -82,5 +92,10 @@ public class Category {
     public void setDefault(boolean aDefault) {
         isDefault = aDefault;
     }
-}
 
+    public long getSupabaseId()         { return supabaseId; }
+    public void setSupabaseId(long v)   { this.supabaseId = v; }
+
+    public int getPendingSync()         { return pendingSync; }
+    public void setPendingSync(int v)   { this.pendingSync = v; }
+}

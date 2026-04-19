@@ -10,6 +10,8 @@ public class Family {
     private long id;
 
     private String name;
+    private String supabaseId;   // UUID from Supabase families.id
+    private String inviteCode;   // 6-char invite code
     private long createdAt = System.currentTimeMillis();
 
     public Family(String name) {
@@ -32,6 +34,12 @@ public class Family {
         this.name = name;
     }
 
+    public String getSupabaseId() { return supabaseId; }
+    public void setSupabaseId(String supabaseId) { this.supabaseId = supabaseId; }
+
+    public String getInviteCode() { return inviteCode; }
+    public void setInviteCode(String inviteCode) { this.inviteCode = inviteCode; }
+
     public long getCreatedAt() {
         return createdAt;
     }
@@ -40,4 +48,3 @@ public class Family {
         this.createdAt = createdAt;
     }
 }
-

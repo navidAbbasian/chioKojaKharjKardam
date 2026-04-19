@@ -27,6 +27,11 @@ public class Transaction {
     public static final int TYPE_INCOME = 1;   // درآمد
     public static final int TYPE_TRANSFER = 2; // کارت به کارت
 
+    /** Sync-status constants for pendingSync field */
+    public static final int SYNC_DONE    = 0;  // synced with Supabase
+    public static final int SYNC_NEW     = 1;  // created offline, needs upload
+    public static final int SYNC_UPDATE  = 2;  // updated offline, needs push
+
     @PrimaryKey(autoGenerate = true)
     private long id;
 
@@ -38,6 +43,12 @@ public class Transaction {
     private String description;
     private long date; // تاریخ تراکنش
     private long createdAt;
+
+    /** Supabase cloud UUID; null = not yet uploaded */
+    private String supabaseId = null;
+
+    /** One of SYNC_DONE / SYNC_NEW / SYNC_UPDATE */
+    private int pendingSync = 0;
 
     public Transaction(long cardId, Long categoryId, long amount,
                        int type, String description, long date) {
@@ -122,5 +133,10 @@ public class Transaction {
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
     }
-}
 
+    public String getSupabaseId()             { return supabaseId; }
+    public void setSupabaseId(String v)       { this.supabaseId = v; }
+
+    public int getPendingSync()             { return pendingSync; }
+    public void setPendingSync(int v)       { this.pendingSync = v; }
+}

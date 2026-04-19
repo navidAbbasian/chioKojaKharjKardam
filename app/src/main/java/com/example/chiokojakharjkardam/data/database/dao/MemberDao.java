@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
@@ -16,6 +17,9 @@ public interface MemberDao {
 
     @Insert
     long insert(Member member);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    long upsert(Member member);
 
     @Update
     void update(Member member);
@@ -31,6 +35,9 @@ public interface MemberDao {
 
     @Query("SELECT * FROM members ORDER BY isOwner DESC, createdAt ASC")
     LiveData<List<Member>> getAllMembers();
+
+    @Query("SELECT * FROM members ORDER BY isOwner DESC, createdAt ASC")
+    List<Member> getAllMembersSync();
 
     @Query("SELECT * FROM members WHERE id = :id")
     LiveData<Member> getMemberById(long id);
@@ -49,5 +56,11 @@ public interface MemberDao {
 
     @Query("UPDATE members SET isOwner = 1 WHERE id = :memberId")
     void setOwner(long memberId);
+
+    @Query("SELECT * FROM members WHERE userId = :userId LIMIT 1")
+    Member getByUserIdSync(String userId);
+
+    @Query("DELETE FROM members WHERE userId NOT IN (:userIds)")
+    void deleteObsoleteMembers(List<String> userIds);
 }
 

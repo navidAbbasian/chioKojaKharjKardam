@@ -12,7 +12,7 @@ import androidx.room.PrimaryKey;
                 childColumns = "familyId",
                 onDelete = ForeignKey.CASCADE
         ),
-        indices = @Index("familyId"))
+        indices = {@Index("familyId"), @Index(value = "userId", unique = true)})
 public class Member {
 
     @PrimaryKey(autoGenerate = true)
@@ -22,6 +22,7 @@ public class Member {
     private String name;
     private boolean isOwner;
     private String avatarColor;
+    private String userId;       // Supabase auth.users UUID
     private long createdAt;
 
     public Member(long familyId, String name, boolean isOwner, String avatarColor) {
@@ -73,6 +74,9 @@ public class Member {
         this.avatarColor = avatarColor;
     }
 
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
+
     public long getCreatedAt() {
         return createdAt;
     }
@@ -81,4 +85,3 @@ public class Member {
         this.createdAt = createdAt;
     }
 }
-

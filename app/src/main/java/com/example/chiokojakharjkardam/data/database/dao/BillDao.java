@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
@@ -16,6 +17,9 @@ public interface BillDao {
 
     @Insert
     long insert(Bill bill);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    long upsert(Bill bill);
 
     @Insert
     List<Long> insertAll(List<Bill> bills);
@@ -31,6 +35,9 @@ public interface BillDao {
 
     @Query("SELECT * FROM bills ORDER BY dueDate ASC")
     LiveData<List<Bill>> getAllBills();
+
+    @Query("SELECT * FROM bills ORDER BY dueDate ASC")
+    List<Bill> getAllBillsSync();
 
     @Query("SELECT * FROM bills WHERE isPaid = 0 ORDER BY dueDate ASC")
     LiveData<List<Bill>> getUnpaidBills();

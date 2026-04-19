@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
@@ -17,6 +18,9 @@ public interface TransferDao {
     @Insert
     long insert(Transfer transfer);
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    long upsert(Transfer transfer);
+
     @Update
     void update(Transfer transfer);
 
@@ -28,6 +32,9 @@ public interface TransferDao {
 
     @Query("SELECT * FROM transfers ORDER BY date DESC")
     LiveData<List<Transfer>> getAllTransfers();
+
+    @Query("SELECT * FROM transfers ORDER BY date DESC")
+    List<Transfer> getAllTransfersSync();
 
     @Query("SELECT * FROM transfers WHERE fromCardId = :cardId OR toCardId = :cardId ORDER BY date DESC")
     LiveData<List<Transfer>> getTransfersByCard(long cardId);

@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
@@ -20,6 +21,9 @@ public interface TransactionDao {
     @Insert
     long insert(Transaction transaction);
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    long upsert(Transaction transaction);
+
     @Update
     void update(Transaction transaction);
 
@@ -29,8 +33,32 @@ public interface TransactionDao {
     @Query("DELETE FROM transactions")
     void deleteAll();
 
+    // ── Offline-sync helpers ──────────────────────────────────────
+
+    @Query("SELECT * FROM transactions WHERE supabaseId = :supabaseId LIMIT 1")
+    Transaction getBySupabaseId(String supabaseId);
+
+    @Query("SELECT * FROM transactions WHERE pendingSync > 0")
+    List<Transaction> getPendingTransactions();
+
+    @Query("UPDATE transactions SET supabaseId = :supabaseId, pendingSync = 0 WHERE id = :localId")
+    void updateSupabaseId(long localId, String supabaseId);
+
+    @Query("UPDATE transactions SET pendingSync = :status WHERE id = :localId")
+    void updateSyncStatus(long localId, int status);
+
+    /**
+     * Deletes synced transactions whose supabaseId is no longer in the remote set.
+     * Used by smart-merge pull to remove records deleted on Supabase by other devices.
+     */
+    @Query("DELETE FROM transactions WHERE supabaseId IS NOT NULL AND pendingSync = 0 AND supabaseId NOT IN (:remoteIds)")
+    void deleteObsoleteTransactions(List<String> remoteIds);
+
     @Query("SELECT * FROM transactions ORDER BY date DESC, createdAt DESC")
     LiveData<List<Transaction>> getAllTransactions();
+
+    @Query("SELECT * FROM transactions ORDER BY date DESC, createdAt DESC")
+    List<Transaction> getAllTransactionsSync();
 
     @Query("SELECT * FROM transactions WHERE cardId = :cardId ORDER BY date DESC")
     LiveData<List<Transaction>> getTransactionsByCard(long cardId);
@@ -58,6 +86,9 @@ public interface TransactionDao {
 
     @Query("SELECT SUM(amount) FROM transactions WHERE type = 1")
     LiveData<Long> getTotalIncome();
+
+    @Query("SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type = 2 AND date BETWEEN :startDate AND :endDate")
+    LiveData<Long> getTotalTransferByDateRange(long startDate, long endDate);
 
     @Query("SELECT * FROM transactions ORDER BY date DESC LIMIT :limit")
     LiveData<List<Transaction>> getRecentTransactions(int limit);
@@ -336,4 +367,3 @@ public interface TransactionDao {
             "ORDER BY totalAmount DESC")
     LiveData<List<CombinedReport>> getTransferReportByCategoryAndTag(long startDate, long endDate);
 }
-
