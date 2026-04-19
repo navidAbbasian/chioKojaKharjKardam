@@ -14,11 +14,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chiokojakharjkardam.R;
 import com.example.chiokojakharjkardam.data.database.entity.Transaction;
+import com.example.chiokojakharjkardam.data.database.entity.TransactionListItem;
 import com.example.chiokojakharjkardam.utils.CurrencyUtils;
 import com.example.chiokojakharjkardam.utils.PersianDateUtils;
 import com.google.android.material.card.MaterialCardView;
 
-public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdapter.TransactionViewHolder> {
+public class TransactionAdapter extends ListAdapter<TransactionListItem, TransactionAdapter.TransactionViewHolder> {
 
     private final OnTransactionClickListener listener;
 
@@ -31,17 +32,20 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
         this.listener = listener;
     }
 
-    private static final DiffUtil.ItemCallback<Transaction> DIFF_CALLBACK = new DiffUtil.ItemCallback<Transaction>() {
+    private static final DiffUtil.ItemCallback<TransactionListItem> DIFF_CALLBACK = new DiffUtil.ItemCallback<TransactionListItem>() {
         @Override
-        public boolean areItemsTheSame(@NonNull Transaction oldItem, @NonNull Transaction newItem) {
-            return oldItem.getId() == newItem.getId();
+        public boolean areItemsTheSame(@NonNull TransactionListItem oldItem, @NonNull TransactionListItem newItem) {
+            return oldItem.getTransaction().getId() == newItem.getTransaction().getId();
         }
 
         @Override
-        public boolean areContentsTheSame(@NonNull Transaction oldItem, @NonNull Transaction newItem) {
-            return oldItem.getAmount() == newItem.getAmount()
-                    && oldItem.getType() == newItem.getType()
-                    && oldItem.getDescription().equals(newItem.getDescription());
+        public boolean areContentsTheSame(@NonNull TransactionListItem oldItem, @NonNull TransactionListItem newItem) {
+            Transaction o = oldItem.getTransaction();
+            Transaction n = newItem.getTransaction();
+            return o.getAmount() == n.getAmount()
+                    && o.getType() == n.getType()
+                    && (o.getDescription() == null ? n.getDescription() == null : o.getDescription().equals(n.getDescription()))
+                    && oldItem.getSubtitle().equals(newItem.getSubtitle());
         }
     };
 
@@ -64,6 +68,7 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
         private final TextView tvDescription;
         private final TextView tvAmount;
         private final TextView tvDate;
+        private final TextView tvCardInfo;
 
         TransactionViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -72,31 +77,40 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
             tvDescription = itemView.findViewById(R.id.tv_description);
             tvAmount = itemView.findViewById(R.id.tv_amount);
             tvDate = itemView.findViewById(R.id.tv_date);
+            tvCardInfo = itemView.findViewById(R.id.tv_card_info);
 
             itemView.setOnClickListener(v -> {
                 int position = getAdapterPosition();
                 if (position != RecyclerView.NO_POSITION && listener != null) {
-                    listener.onTransactionClick(getItem(position));
+                    listener.onTransactionClick(getItem(position).getTransaction());
                 }
             });
         }
 
-        void bind(Transaction transaction) {
+        void bind(TransactionListItem item) {
+            Transaction transaction = item.getTransaction();
             tvDescription.setText(transaction.getDescription());
             tvDate.setText(PersianDateUtils.formatDate(transaction.getDate()));
 
+            // Show card/member info subtitle
+            String subtitle = item.getSubtitle();
+            if (!subtitle.isEmpty()) {
+                tvCardInfo.setText(subtitle);
+                tvCardInfo.setVisibility(View.VISIBLE);
+            } else {
+                tvCardInfo.setVisibility(View.GONE);
+            }
+
             if (transaction.getType() == Transaction.TYPE_EXPENSE) {
                 tvAmount.setText("-" + CurrencyUtils.formatToman(transaction.getAmount()));
-                tvAmount.setTextColor(Color.parseColor("#F44336")); // قرمز
+                tvAmount.setTextColor(Color.parseColor("#F44336"));
             } else if (transaction.getType() == Transaction.TYPE_INCOME) {
                 tvAmount.setText("+" + CurrencyUtils.formatToman(transaction.getAmount()));
-                tvAmount.setTextColor(Color.parseColor("#4CAF50")); // سبز
+                tvAmount.setTextColor(Color.parseColor("#4CAF50"));
             } else {
-                // TYPE_TRANSFER - کارت به کارت
                 tvAmount.setText(CurrencyUtils.formatToman(transaction.getAmount()));
-                tvAmount.setTextColor(Color.parseColor("#2196F3")); // آبی
+                tvAmount.setTextColor(Color.parseColor("#2196F3"));
             }
         }
     }
 }
-

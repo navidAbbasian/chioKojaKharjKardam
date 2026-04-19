@@ -35,6 +35,7 @@ public class TransactionDetailFragment extends Fragment {
     private TextView tvCard;
     private TextView tvToCard;
     private TextView tvDate;
+    private TextView tvMember;
     private LinearLayout layoutTags;
     private View layoutToCard;
     private ChipGroup chipGroupTags;
@@ -74,6 +75,7 @@ public class TransactionDetailFragment extends Fragment {
         tvCard = view.findViewById(R.id.tv_card);
         tvToCard = view.findViewById(R.id.tv_to_card);
         tvDate = view.findViewById(R.id.tv_date);
+        tvMember = view.findViewById(R.id.tv_member);
         layoutTags = view.findViewById(R.id.layout_tags);
         layoutToCard = view.findViewById(R.id.layout_to_card);
         chipGroupTags = view.findViewById(R.id.chip_group_tags);
@@ -134,20 +136,33 @@ public class TransactionDetailFragment extends Fragment {
         tvDate.setText(PersianDateUtils.formatDate(transaction.getDate()));
 
         // بارگذاری نام دسته‌بندی
-        viewModel.getCategoryById(transaction.getCategoryId()).observe(getViewLifecycleOwner(), category -> {
-            if (category != null) {
-                tvCategory.setText(category.getName());
-            } else {
-                tvCategory.setText("-");
-            }
-        });
+        if (transaction.getCategoryId() != null) {
+            viewModel.getCategoryById(transaction.getCategoryId()).observe(getViewLifecycleOwner(), category -> {
+                if (category != null) {
+                    tvCategory.setText(category.getName());
+                } else {
+                    tvCategory.setText("-");
+                }
+            });
+        } else {
+            tvCategory.setText("-");
+        }
 
         // بارگذاری نام کارت مبدا
         viewModel.getCardById(transaction.getCardId()).observe(getViewLifecycleOwner(), card -> {
             if (card != null) {
                 tvCard.setText(card.getBankName() + " - " + card.getCardNumber());
+                // بارگذاری نام صاحب کارت
+                viewModel.getMemberById(card.getMemberId()).observe(getViewLifecycleOwner(), member -> {
+                    if (member != null) {
+                        tvMember.setText(member.getName());
+                    } else {
+                        tvMember.setText("-");
+                    }
+                });
             } else {
                 tvCard.setText("-");
+                tvMember.setText("-");
             }
         });
 

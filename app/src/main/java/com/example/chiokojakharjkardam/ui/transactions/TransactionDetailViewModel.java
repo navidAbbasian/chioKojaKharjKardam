@@ -8,10 +8,12 @@ import androidx.lifecycle.LiveData;
 
 import com.example.chiokojakharjkardam.data.database.entity.BankCard;
 import com.example.chiokojakharjkardam.data.database.entity.Category;
+import com.example.chiokojakharjkardam.data.database.entity.Member;
 import com.example.chiokojakharjkardam.data.database.entity.Tag;
 import com.example.chiokojakharjkardam.data.database.entity.Transaction;
 import com.example.chiokojakharjkardam.data.repository.BankCardRepository;
 import com.example.chiokojakharjkardam.data.repository.CategoryRepository;
+import com.example.chiokojakharjkardam.data.repository.MemberRepository;
 import com.example.chiokojakharjkardam.data.repository.TagRepository;
 import com.example.chiokojakharjkardam.data.repository.TransactionRepository;
 
@@ -23,6 +25,7 @@ public class TransactionDetailViewModel extends AndroidViewModel {
     private final CategoryRepository categoryRepository;
     private final BankCardRepository bankCardRepository;
     private final TagRepository tagRepository;
+    private final MemberRepository memberRepository;
 
     public TransactionDetailViewModel(@NonNull Application application) {
         super(application);
@@ -30,6 +33,7 @@ public class TransactionDetailViewModel extends AndroidViewModel {
         categoryRepository = new CategoryRepository(application);
         bankCardRepository = new BankCardRepository(application);
         tagRepository = new TagRepository(application);
+        memberRepository = new MemberRepository(application);
     }
 
     public LiveData<Transaction> getTransactionById(long id) {
@@ -48,8 +52,11 @@ public class TransactionDetailViewModel extends AndroidViewModel {
         return tagRepository.getTagsByTransactionId(transactionId);
     }
 
+    public LiveData<Member> getMemberById(long id) {
+        return memberRepository.getMemberById(id);
+    }
+
     public void deleteTransaction(Transaction transaction) {
         transactionRepository.delete(transaction);
     }
 }
-

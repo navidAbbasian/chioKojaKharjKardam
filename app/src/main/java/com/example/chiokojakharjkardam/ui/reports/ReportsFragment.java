@@ -25,6 +25,7 @@ import com.example.chiokojakharjkardam.R;
 import com.example.chiokojakharjkardam.data.database.AppDatabase;
 import com.example.chiokojakharjkardam.data.database.entity.Transaction;
 import com.example.chiokojakharjkardam.data.database.entity.TransactionDetail;
+import com.example.chiokojakharjkardam.data.database.entity.TransactionListItem;
 import com.example.chiokojakharjkardam.ui.adapters.ReportAdapter;
 import com.example.chiokojakharjkardam.ui.adapters.TransactionAdapter;
 import com.example.chiokojakharjkardam.ui.components.PersianDatePickerDialog;
@@ -336,6 +337,14 @@ public class ReportsFragment extends Fragment {
         viewModel.getEndDate().observe(getViewLifecycleOwner(), e -> updateSelectedRangeText());
         viewModel.getGroupBy().observe(getViewLifecycleOwner(), this::observeReportsForGroupBy);
 
+        // مجموع واقعی — مستقیم از transactions، بدون double-count تگ‌ها
+        viewModel.getTotalAmount().observe(getViewLifecycleOwner(), total -> {
+            if (!switchAllTransactions.isChecked()) {
+                long amount = total != null ? total : 0L;
+                tvTotalAmount.setText(numberFormat.format(amount) + " " + getString(R.string.toman));
+            }
+        });
+
         viewModel.getFilteredTransactions().observe(getViewLifecycleOwner(), transactions -> {
             // کارت تراکنش‌ها فقط باید نمایش داده شود وقتی:
             // ۱) سوئیچ «همه تراکنش‌ها» روشن است
@@ -346,7 +355,7 @@ public class ReportsFragment extends Fragment {
 
             if (transactions != null && !transactions.isEmpty()) {
                 currentTransactions = transactions;
-                transactionAdapter.submitList(transactions);
+                transactionAdapter.submitList(wrapTransactions(transactions));
 
                 if (showCard) {
                     rvTransactions.setVisibility(View.VISIBLE);
@@ -362,7 +371,7 @@ public class ReportsFragment extends Fragment {
                 // اگر showCard=false است، کارت مخفی است و نیازی به تغییر نیست
             } else {
                 currentTransactions = new ArrayList<>();
-                transactionAdapter.submitList(new ArrayList<>());
+                transactionAdapter.submitList(new ArrayList<TransactionListItem>());
 
                 if (showCard) {
                     rvTransactions.setVisibility(View.GONE);
@@ -394,7 +403,6 @@ public class ReportsFragment extends Fragment {
                             adapter.setCategoryReports(reports);
                             rvReports.setVisibility(View.VISIBLE);
                             layoutEmpty.setVisibility(View.GONE);
-                            updateTotalAmount();
                         } else {
                             rvReports.setVisibility(View.GONE);
                             layoutEmpty.setVisibility(View.VISIBLE);
@@ -410,7 +418,6 @@ public class ReportsFragment extends Fragment {
                             adapter.setTagReports(reports);
                             rvReports.setVisibility(View.VISIBLE);
                             layoutEmpty.setVisibility(View.GONE);
-                            updateTotalAmount();
                         } else {
                             rvReports.setVisibility(View.GONE);
                             layoutEmpty.setVisibility(View.VISIBLE);
@@ -426,7 +433,6 @@ public class ReportsFragment extends Fragment {
                             adapter.setCombinedReports(reports);
                             rvReports.setVisibility(View.VISIBLE);
                             layoutEmpty.setVisibility(View.GONE);
-                            updateTotalAmount();
                         } else {
                             rvReports.setVisibility(View.GONE);
                             layoutEmpty.setVisibility(View.VISIBLE);
@@ -441,16 +447,11 @@ public class ReportsFragment extends Fragment {
     private void updateSelectedRangeText() {
         Long start = viewModel.getStartDate().getValue();
         Long end = viewModel.getEndDate().getValue();
-
         if (start != null && end != null) {
             tvSelectedRange.setText(PersianDateUtils.formatTimestamp(start) + " تا " + PersianDateUtils.formatTimestamp(end));
         }
     }
 
-    private void updateTotalAmount() {
-        long total = adapter.getTotalAmount();
-        tvTotalAmount.setText(numberFormat.format(total) + " " + getString(R.string.toman));
-    }
 
     /** محاسبه مجموع مبالغ از لیست تراکنش‌ها (برای حالت «همه تراکنش‌ها») */
     private void updateTotalAmountFromList(List<Transaction> transactions) {
@@ -466,6 +467,15 @@ public class ReportsFragment extends Fragment {
         }
         long net = totalIncome - totalExpense;
         tvTotalAmount.setText(numberFormat.format(net) + " " + getString(R.string.toman));
+    }
+
+    /** Wraps raw Transaction list into TransactionListItem (without card/member info for reports) */
+    private List<TransactionListItem> wrapTransactions(List<Transaction> transactions) {
+        List<TransactionListItem> items = new ArrayList<>();
+        for (Transaction tx : transactions) {
+            items.add(new TransactionListItem(tx, "", ""));
+        }
+        return items;
     }
 }
 

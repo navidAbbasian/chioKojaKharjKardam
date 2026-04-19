@@ -20,7 +20,6 @@ import com.example.chiokojakharjkardam.ui.adapters.MemberAdapter;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -38,7 +37,6 @@ public class MembersFragment extends Fragment {
     private View layoutNoFamily;
     private View layoutMembers;
     private MaterialButton btnCreateFamily;
-    private FloatingActionButton fabAdd;
 
     private Family currentFamily = null;
 
@@ -68,7 +66,6 @@ public class MembersFragment extends Fragment {
         layoutMembers = view.findViewById(R.id.layout_members);
         rvMembers = view.findViewById(R.id.rv_members);
         btnCreateFamily = view.findViewById(R.id.btn_create_family);
-        fabAdd = view.findViewById(R.id.fab_add_member);
     }
 
     private void setupRecyclerView() {
@@ -90,9 +87,6 @@ public class MembersFragment extends Fragment {
     }
 
     private void setupListeners() {
-        fabAdd.setOnClickListener(v ->
-                Navigation.findNavController(v).navigate(R.id.addMemberFragment)
-        );
 
         btnEditFamily.setOnClickListener(v -> showEditFamilyDialog());
 
@@ -154,9 +148,13 @@ public class MembersFragment extends Fragment {
         View dialogView = LayoutInflater.from(requireContext())
                 .inflate(R.layout.dialog_create_family, null);
         TextInputEditText etFamilyName = dialogView.findViewById(R.id.et_family_name);
-        TextInputEditText etOwnerName = dialogView.findViewById(R.id.et_owner_name);
         TextInputLayout tilFamilyName = dialogView.findViewById(R.id.til_family_name);
-        TextInputLayout tilOwnerName = dialogView.findViewById(R.id.til_owner_name);
+
+        // نام سرپرست از session گرفته می‌شود (کاربر لاگین شده)
+        com.example.chiokojakharjkardam.utils.SessionManager session = 
+                com.example.chiokojakharjkardam.utils.SessionManager.getInstance();
+        String ownerName = (session.getFullName() != null && !session.getFullName().isEmpty())
+                ? session.getFullName() : session.getUserEmail();
 
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.create_family)
@@ -164,15 +162,9 @@ public class MembersFragment extends Fragment {
                 .setPositiveButton(R.string.save, (dialog, which) -> {
                     String familyName = etFamilyName.getText() != null
                             ? etFamilyName.getText().toString().trim() : "";
-                    String ownerName = etOwnerName.getText() != null
-                            ? etOwnerName.getText().toString().trim() : "";
 
                     if (familyName.isEmpty()) {
                         tilFamilyName.setError(getString(R.string.family_name_required));
-                        return;
-                    }
-                    if (ownerName.isEmpty()) {
-                        tilOwnerName.setError(getString(R.string.owner_name_required));
                         return;
                     }
 

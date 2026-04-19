@@ -1,8 +1,8 @@
 package com.example.chiokojakharjkardam.ui;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,56 +14,100 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.chiokojakharjkardam.R;
-import com.example.chiokojakharjkardam.ui.setup.SetupActivity;
-import com.example.chiokojakharjkardam.utils.Constants;
+import com.example.chiokojakharjkardam.ui.auth.AuthActivity;
+import com.example.chiokojakharjkardam.ui.family.FamilySetupActivity;
+import com.example.chiokojakharjkardam.utils.NetworkMonitor;
+import com.example.chiokojakharjkardam.utils.SessionManager;
+import com.example.chiokojakharjkardam.utils.SyncManager;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.snackbar.Snackbar;
 
 public class MainActivity extends AppCompatActivity {
 
     private NavController navController;
     private TextView tvToolbarTitle;
+    private View offlineBanner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // بررسی اولین اجرا
-        if (isFirstRun()) {
-            startActivity(new Intent(this, SetupActivity.class));
+        // بررسی وضعیت ورود کاربر
+        SessionManager session = SessionManager.getInstance();
+        if (!session.isLoggedIn()) {
+            startActivity(new Intent(this, AuthActivity.class));
             finish();
             return;
         }
+        if (!session.hasFamilyId()) {
+            startActivity(new Intent(this, FamilySetupActivity.class));
+            finish();
+            return;
+        }
+
+        // تجدید دوره ۹۰ روزه هر بار که اپ باز می‌شود
+        session.refreshLocalSession();
 
         setContentView(R.layout.activity_main);
 
         setupToolbar();
         setupNavigation();
+        observeNetwork();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Refresh cloud cache every time user returns to the app
+        SyncManager.getInstance().syncAll();
+    }
+
+    // ── Toolbar ────────────────────────────────────────────────────
 
     private void setupToolbar() {
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         tvToolbarTitle = findViewById(R.id.toolbar_title);
+        offlineBanner  = findViewById(R.id.offline_banner);
         setSupportActionBar(toolbar);
-
-        // مخفی کردن عنوان پیش‌فرض
-        if (getSupportActionBar() != null) {
+        if (getSupportActionBar() != null)
             getSupportActionBar().setDisplayShowTitleEnabled(false);
-        }
 
-        // تنظیم padding برای notch
-        ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, windowInsets) -> {
-            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars());
-            v.setPadding(v.getPaddingLeft(), insets.top, v.getPaddingRight(), v.getPaddingBottom());
-            return windowInsets;
+        ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.statusBars());
+            v.setPadding(v.getPaddingLeft(), bars.top, v.getPaddingRight(), v.getPaddingBottom());
+            return insets;
         });
 
-        // تنظیم padding برای navigation bar (پایین)
         BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
-        ViewCompat.setOnApplyWindowInsetsListener(bottomNav, (v, windowInsets) -> {
-            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars());
-            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), insets.bottom);
-            return windowInsets;
+        ViewCompat.setOnApplyWindowInsetsListener(bottomNav, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
+            v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), bars.bottom);
+            return insets;
+        });
+    }
+
+    private void observeNetwork() {
+        NetworkMonitor.getInstance().isConnected().observe(this, online -> {
+            if (offlineBanner == null) return;
+            offlineBanner.setVisibility(online ? View.GONE : View.VISIBLE);
+
+            if (online) {
+                // وقتی دستگاه آنلاین می‌شود، همگام‌سازی خودکار انجام بده
+                SyncManager.getInstance().syncAll();
+                
+                // بررسی نیاز به احراز هویت مجدد
+                if (SessionManager.getInstance().needsReauth()) {
+                    View root = findViewById(android.R.id.content);
+                    Snackbar.make(root,
+                            "برای همگام‌سازی ابری، لطفاً مجدداً وارد شوید",
+                            Snackbar.LENGTH_LONG)
+                            .setAction("ورود", v -> {
+                                startActivity(new Intent(this, AuthActivity.class));
+                            })
+                            .show();
+                }
+            }
         });
     }
 
@@ -71,53 +115,33 @@ public class MainActivity extends AppCompatActivity {
      * تنظیم عنوان toolbar
      */
     public void setToolbarTitle(String title) {
-        if (tvToolbarTitle != null) {
-            tvToolbarTitle.setText(title);
-        }
+        if (tvToolbarTitle != null) tvToolbarTitle.setText(title);
     }
 
-    private boolean isFirstRun() {
-        SharedPreferences prefs = getSharedPreferences(Constants.PREF_NAME, MODE_PRIVATE);
-        return !prefs.getBoolean(Constants.PREF_FAMILY_CREATED, false);
-    }
+    // ── Navigation ─────────────────────────────────────────────────
 
     private void setupNavigation() {
         BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+        NavHostFragment navHostFragment = (NavHostFragment)
+                getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
+        if (navHostFragment == null) return;
 
-        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.nav_host_fragment);
+        navController = navHostFragment.getNavController();
+        NavigationUI.setupWithNavController(bottomNav, navController);
 
-        if (navHostFragment != null) {
-            navController = navHostFragment.getNavController();
-            NavigationUI.setupWithNavController(bottomNav, navController);
+        navController.addOnDestinationChangedListener((ctrl, dest, args) -> {
+            CharSequence label = dest.getLabel();
+            if (label != null && tvToolbarTitle != null) tvToolbarTitle.setText(label);
+        });
 
-            // تغییر عنوان toolbar با تغییر صفحه
-            navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-                CharSequence label = destination.getLabel();
-                if (label != null && tvToolbarTitle != null) {
-                    tvToolbarTitle.setText(label);
-                }
-            });
+        bottomNav.setOnItemSelectedListener(item -> {
+            navController.popBackStack(navController.getGraph().getStartDestinationId(), false);
+            try { navController.navigate(item.getItemId()); } catch (Exception ignored) {}
+            return true;
+        });
 
-            // با کلیک روی هر تب، back stack پاک شود و به صفحه اصلی آن تب برگردد
-            bottomNav.setOnItemSelectedListener(item -> {
-                // پاک کردن back stack و navigate به destination انتخاب شده
-                navController.popBackStack(navController.getGraph().getStartDestinationId(), false);
-
-                try {
-                    navController.navigate(item.getItemId());
-                } catch (Exception e) {
-                    // اگر همین destination است، مشکلی نیست
-                }
-                return true;
-            });
-
-            // برای جلوگیری از مشکل reselect
-            bottomNav.setOnItemReselectedListener(item -> {
-                // وقتی روی همان تب کلیک می‌شود، به root آن تب برگرد
-                navController.popBackStack(item.getItemId(), false);
-            });
-        }
+        bottomNav.setOnItemReselectedListener(item ->
+                navController.popBackStack(item.getItemId(), false));
     }
 
     @Override
@@ -125,4 +149,3 @@ public class MainActivity extends AppCompatActivity {
         return navController.navigateUp() || super.onSupportNavigateUp();
     }
 }
-

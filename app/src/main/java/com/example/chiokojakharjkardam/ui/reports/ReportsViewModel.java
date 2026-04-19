@@ -51,6 +51,13 @@ public class ReportsViewModel extends AndroidViewModel {
     private final MediatorLiveData<List<CombinedReport>> combinedReports = new MediatorLiveData<>();
     private final MediatorLiveData<List<Transaction>> filteredTransactions = new MediatorLiveData<>();
 
+    /**
+     * مجموع مبلغ واقعی برای بازه جاری — مستقیم از جدول transactions محاسبه می‌شود
+     * بدون JOIN با تگ‌ها، بنابراین تراکنش‌هایی که چند تگ دارند یک بار شمرده می‌شوند.
+     */
+    private final MediatorLiveData<Long> totalAmount = new MediatorLiveData<>(0L);
+    private LiveData<Long> currentTotalSource;
+
     private LiveData<List<CategoryReport>> currentCategorySource;
     private LiveData<List<TagReport>> currentTagSource;
     private LiveData<List<CombinedReport>> currentCombinedSource;
@@ -176,6 +183,9 @@ public class ReportsViewModel extends AndroidViewModel {
 
         // به‌روزرسانی لیست تراکنش‌ها با فیلترهای انتخابی
         refreshTransactions(start, end, type, group);
+
+        // مجموع واقعی — مستقیم از transactions، بدون double-count تگ‌ها
+        refreshTotalAmount(start, end, type);
 
         // گزارش‌های گروه‌بندی فقط در حالت ALL نمایش داده نمی‌شوند
         if (type == TRANSACTION_TYPE_ALL) return;
@@ -307,6 +317,29 @@ public class ReportsViewModel extends AndroidViewModel {
         combinedReports.addSource(currentCombinedSource, combinedReports::setValue);
     }
 
+    /**
+     * مجموع واقعی تراکنش‌ها را مستقیم از جدول transactions بارگذاری می‌کند.
+     * این کوئری JOIN با تگ‌ها ندارد، پس تراکنش‌هایی که چند تگ دارند یک بار شمرده می‌شوند.
+     */
+    private void refreshTotalAmount(long start, long end, int type) {
+        if (currentTotalSource != null) {
+            totalAmount.removeSource(currentTotalSource);
+        }
+        if (type == TRANSACTION_TYPE_EXPENSE) {
+            currentTotalSource = repository.getTotalExpenseInRange(start, end);
+        } else if (type == TRANSACTION_TYPE_INCOME) {
+            currentTotalSource = repository.getTotalIncomeInRange(start, end);
+        } else if (type == TRANSACTION_TYPE_TRANSFER) {
+            currentTotalSource = repository.getTotalTransferInRange(start, end);
+        } else {
+            // ALL: نمایش خالص (درآمد - خرج) — از طریق income منهای expense
+            // برای سادگی، مقدار 0 نمایش می‌دهیم (در ReportsFragment از updateTotalAmountFromList استفاده می‌شود)
+            totalAmount.setValue(null);
+            return;
+        }
+        totalAmount.addSource(currentTotalSource, v -> totalAmount.setValue(v != null ? v : 0L));
+    }
+
     // Getters
     public LiveData<Integer> getGroupBy() {
         return groupBy;
@@ -334,6 +367,11 @@ public class ReportsViewModel extends AndroidViewModel {
 
     public LiveData<List<TagReport>> getTagReports() {
         return tagReports;
+    }
+
+    /** مجموع واقعی بدون double-count — برای نمایش در بالای گزارش */
+    public LiveData<Long> getTotalAmount() {
+        return totalAmount;
     }
 
     public LiveData<List<CombinedReport>> getCombinedReports() {

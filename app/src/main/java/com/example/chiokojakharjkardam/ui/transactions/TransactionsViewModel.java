@@ -10,16 +10,21 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.chiokojakharjkardam.data.database.entity.BankCard;
 import com.example.chiokojakharjkardam.data.database.entity.Category;
+import com.example.chiokojakharjkardam.data.database.entity.Member;
 import com.example.chiokojakharjkardam.data.database.entity.Tag;
 import com.example.chiokojakharjkardam.data.database.entity.Transaction;
+import com.example.chiokojakharjkardam.data.database.entity.TransactionListItem;
 import com.example.chiokojakharjkardam.data.database.entity.TransactionTag;
 import com.example.chiokojakharjkardam.data.repository.BankCardRepository;
 import com.example.chiokojakharjkardam.data.repository.CategoryRepository;
+import com.example.chiokojakharjkardam.data.repository.MemberRepository;
 import com.example.chiokojakharjkardam.data.repository.TagRepository;
 import com.example.chiokojakharjkardam.data.repository.TransactionRepository;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class TransactionsViewModel extends AndroidViewModel {
@@ -32,19 +37,21 @@ public class TransactionsViewModel extends AndroidViewModel {
     private final CategoryRepository categoryRepository;
     private final BankCardRepository cardRepository;
     private final TagRepository tagRepository;
+    private final MemberRepository memberRepository;
 
     private final LiveData<List<Transaction>> allTransactions;
     private final LiveData<List<Category>> allCategories;
     private final LiveData<List<BankCard>> allCards;
     private final LiveData<List<Tag>> allTags;
     private final LiveData<List<TransactionTag>> allTransactionTags;
+    private final LiveData<List<Member>> allMembers;
 
     private final MutableLiveData<Integer> currentFilter = new MutableLiveData<>(FILTER_ALL);
-    private final MutableLiveData<Long> categoryFilter = new MutableLiveData<>(-1L); // -1 = همه
-    private final MutableLiveData<Long> cardFilter = new MutableLiveData<>(-1L); // -1 = همه
-    private final MutableLiveData<Long> tagFilter = new MutableLiveData<>(-1L); // -1 = همه
+    private final MutableLiveData<Long> categoryFilter = new MutableLiveData<>(-1L);
+    private final MutableLiveData<Long> cardFilter = new MutableLiveData<>(-1L);
+    private final MutableLiveData<Long> tagFilter = new MutableLiveData<>(-1L);
 
-    private final MediatorLiveData<List<Transaction>> filteredTransactions = new MediatorLiveData<>();
+    private final MediatorLiveData<List<TransactionListItem>> filteredTransactions = new MediatorLiveData<>();
 
     public TransactionsViewModel(@NonNull Application application) {
         super(application);
@@ -52,12 +59,14 @@ public class TransactionsViewModel extends AndroidViewModel {
         categoryRepository = new CategoryRepository(application);
         cardRepository = new BankCardRepository(application);
         tagRepository = new TagRepository(application);
+        memberRepository = new MemberRepository(application);
 
         allTransactions = repository.getAllTransactions();
         allCategories = categoryRepository.getAllCategories();
         allCards = cardRepository.getAllCards();
         allTags = tagRepository.getAllTags();
         allTransactionTags = repository.getAllTransactionTags();
+        allMembers = memberRepository.getAllMembers();
 
         filteredTransactions.addSource(allTransactions, transactions -> applyFilters());
         filteredTransactions.addSource(currentFilter, filter -> applyFilters());
@@ -65,6 +74,8 @@ public class TransactionsViewModel extends AndroidViewModel {
         filteredTransactions.addSource(cardFilter, filter -> applyFilters());
         filteredTransactions.addSource(tagFilter, filter -> applyFilters());
         filteredTransactions.addSource(allTransactionTags, tags -> applyFilters());
+        filteredTransactions.addSource(allCards, cards -> applyFilters());
+        filteredTransactions.addSource(allMembers, members -> applyFilters());
     }
 
     private void applyFilters() {
@@ -92,7 +103,7 @@ public class TransactionsViewModel extends AndroidViewModel {
         // فیلتر بر اساس دسته‌بندی
         if (catFilter != null && catFilter != -1) {
             result = result.stream()
-                    .filter(t -> t.getCategoryId() == catFilter)
+                    .filter(t -> t.getCategoryId() != null && t.getCategoryId() == catFilter)
                     .collect(Collectors.toList());
         }
 
@@ -119,7 +130,29 @@ public class TransactionsViewModel extends AndroidViewModel {
             }
         }
 
-        filteredTransactions.setValue(result);
+        // Build card and member maps for enrichment
+        Map<Long, BankCard> cardMap = new HashMap<>();
+        List<BankCard> cards = allCards.getValue();
+        if (cards != null) {
+            for (BankCard c : cards) cardMap.put(c.getId(), c);
+        }
+
+        Map<Long, String> memberNameByCardMemberId = new HashMap<>();
+        List<Member> members = allMembers.getValue();
+        if (members != null) {
+            for (Member m : members) memberNameByCardMemberId.put(m.getId(), m.getName());
+        }
+
+        // Convert to TransactionListItem
+        List<TransactionListItem> items = new ArrayList<>();
+        for (Transaction tx : result) {
+            BankCard card = cardMap.get(tx.getCardId());
+            String cardName = card != null ? (card.getBankName() + " - " + card.getCardNumber()) : "";
+            String memberName = card != null ? memberNameByCardMemberId.get(card.getMemberId()) : null;
+            items.add(new TransactionListItem(tx, cardName, memberName != null ? memberName : ""));
+        }
+
+        filteredTransactions.setValue(items);
     }
 
     public void setFilter(int filter) {
@@ -145,7 +178,7 @@ public class TransactionsViewModel extends AndroidViewModel {
         tagFilter.setValue(-1L);
     }
 
-    public LiveData<List<Transaction>> getFilteredTransactions() {
+    public LiveData<List<TransactionListItem>> getFilteredTransactions() {
         return filteredTransactions;
     }
 
@@ -165,4 +198,3 @@ public class TransactionsViewModel extends AndroidViewModel {
         repository.delete(transaction);
     }
 }
-
