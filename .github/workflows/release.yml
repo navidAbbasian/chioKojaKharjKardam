@@ -1,0 +1,60 @@
+name: Build & Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'   # هر تگی که با v شروع بشه — مثل v1.00، v1.10، v2.0
+
+jobs:
+  build-and-release:
+    name: Build APK and publish GitHub Release
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── ۱. دریافت کد ─────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── ۲. راه‌اندازی JDK 17 ─────────────────────────────────────────────
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      # ── ۳. دسترسی اجرا به Gradle ─────────────────────────────────────────
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # ── ۴. بیلد APK دیباگ ────────────────────────────────────────────────
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --no-daemon
+
+      # ── ۵. پیدا کردن مسیر APK و تغییر نامش به اسم تگ ────────────────────
+      - name: Rename APK with tag version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -1)
+          NEW_NAME="ChioKojaKharjKardam-${TAG}.apk"
+          mv "$APK_PATH" "app/build/outputs/apk/debug/${NEW_NAME}"
+          echo "APK_PATH=app/build/outputs/apk/debug/${NEW_NAME}" >> $GITHUB_ENV
+          echo "TAG=$TAG" >> $GITHUB_ENV
+
+      # ── ۶. ساخت Release و آپلود APK ──────────────────────────────────────
+      - name: Create GitHub Release and upload APK
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "نسخه ${{ env.TAG }}"
+          body: |
+            ## 📦 نسخه ${{ env.TAG }}
+
+            فایل APK این نسخه در پایین قابل دانلود است.
+
+            > برای نصب، فایل APK را روی گوشی اندرویدی خود دانلود و نصب کنید.
+          files: ${{ env.APK_PATH }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
