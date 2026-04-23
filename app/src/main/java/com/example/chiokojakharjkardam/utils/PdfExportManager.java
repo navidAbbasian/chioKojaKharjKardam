@@ -32,9 +32,9 @@ public class PdfExportManager {
     private static final int HEADER_ROW = 30;
 
     // عرض ستون‌ها (مجموع = PAGE_WIDTH - 2*MARGIN = 770)
-    // ردیف | تاریخ | توضیحات | دسته‌بندی | تگ‌ها | نوع | مبلغ
-    private static final int[] COL_W = {30, 90, 175, 130, 155, 60, 130};
-    // مجموع = 30+90+175+130+155+60+130 = 770 ✓
+    // ردیف | تاریخ | توضیحات | دسته‌بندی | تگ‌ها | کارت | عضو | نوع | مبلغ
+    private static final int[] COL_W = {25, 75, 120, 90, 100, 105, 70, 50, 135};
+    // مجموع = 25+75+120+90+100+105+70+50+135 = 770 ✓
 
     public interface ExportCallback {
         void onSuccess(String message);
@@ -163,7 +163,7 @@ public class PdfExportManager {
 
         // ---- هدر ستون‌ها ----
         // عناوین ستون‌ها (از راست به چپ: ردیف، تاریخ، توضیحات، دسته‌بندی، تگ‌ها، نوع، مبلغ)
-        String[] headers = {"ردیف", "تاریخ", "توضیحات", "دسته‌بندی", "تگ‌ها", "نوع", "مبلغ (تومان)"};
+        String[] headers = {"ردیف", "تاریخ", "توضیحات", "دسته‌بندی", "تگ‌ها", "کارت", "عضو", "نوع", "مبلغ (تومان)"};
 
         // رسم پس‌زمینه هدر
         cv.drawRect(x0, y, x0 + totalColW(), y + HEADER_ROW, pBgColHd);
@@ -208,9 +208,11 @@ public class PdfExportManager {
             String[] cells = {
                 persian(String.valueOf(i + 1)),
                 PersianDateUtils.formatDate(t.getDate()),
-                truncate(t.getDescription(), 22),
-                truncate(d.getCategoryName(), 16),
-                truncate(d.getTagNames(), 20),
+                truncate(t.getDescription(), 18),
+                truncate(d.getCategoryName(), 12),
+                truncate(d.getTagNames(), 14),
+                truncate(d.getCardName(), 14),
+                truncate(d.getMemberName(), 10),
                 typeLabel,
                 persian(fmt.format(t.getAmount()))
             };
@@ -221,7 +223,7 @@ public class PdfExportManager {
             for (int c = 0; c < COL_W.length; c++) {
                 float cx = colX + COL_W[c] / 2f;
                 // ستون مبلغ و نوع با رنگ نوع تراکنش
-                Paint cp = (c == COL_W.length - 1 || c == 5)
+                Paint cp = (c == COL_W.length - 1 || c == COL_W.length - 2)
                         ? (isTransfer ? pTransfer : (isExp ? pExp : pInc))
                         : pRow;
                 cv.drawText(cells[c], cx, textY, cp);

@@ -701,6 +701,8 @@ public class SyncManager {
                         Long localMemberId = rc.memberId != null ? memberMap.get(rc.memberId) : null;
                         if (localMemberId == null) localMemberId = fallbackMemberId;
                         if (existing != null) {
+                            // Skip overwriting records that have pending local changes
+                            if (existing.getPendingSync() != 0) continue;
                             existing.setBankName(rc.bankName);
                             existing.setCardNumber(rc.cardNumber);
                             existing.setCardHolderName(rc.cardHolderName);
@@ -746,6 +748,8 @@ public class SyncManager {
                             }
                         }
                         if (existing != null) {
+                            // Skip overwriting records that have pending local changes
+                            if (existing.getPendingSync() != 0) continue;
                             existing.setName(rc.name); existing.setIcon(rc.icon);
                             existing.setColor(rc.color); existing.setType(rc.type);
                             existing.setSupabaseId(rc.id != null ? rc.id : 0);
@@ -784,6 +788,8 @@ public class SyncManager {
                             }
                         }
                         if (existing != null) {
+                            // Skip overwriting records that have pending local changes
+                            if (existing.getPendingSync() != 0) continue;
                             existing.setName(rt.name); existing.setColor(rt.color);
                             existing.setSupabaseId(rt.id != null ? rt.id : 0);
                             existing.setFamilyId(localFamilyId);
