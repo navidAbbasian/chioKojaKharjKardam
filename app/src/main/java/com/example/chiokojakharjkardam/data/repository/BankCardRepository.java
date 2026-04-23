@@ -74,15 +74,9 @@ public class BankCardRepository {
 
     public void update(BankCard card) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
-            if (NetworkMonitor.getInstance().isOnline() && card.getSupabaseId() > 0) {
-                card.setPendingSync(0);
-            } else {
-                card.setPendingSync(2);
-            }
+            // Always mark as pending update first; only clear after confirmed remote success
+            card.setPendingSync(2);
             bankCardDao.update(card);
-
-            // Auto-sync trigger
-            SyncManager.getInstance().triggerAutoSync();
 
             if (NetworkMonitor.getInstance().isOnline() && card.getSupabaseId() > 0) {
                 Map<String, Object> upd = new HashMap<>();
@@ -93,13 +87,17 @@ public class BankCardRepository {
                 upd.put("initial_balance", card.getInitialBalance());
                 upd.put("color", card.getColor());
                 remote.updateBankCard(card.getSupabaseId(), upd, new RemoteDataSource.Callback<Void>() {
-                    @Override public void onSuccess(Void v) {}
-                    @Override public void onError(String msg) {
+                    @Override public void onSuccess(Void v) {
                         AppDatabase.databaseWriteExecutor.execute(() ->
-                                bankCardDao.updateSyncStatus(card.getId(), 2));
+                                bankCardDao.updateSyncStatus(card.getId(), 0));
+                    }
+                    @Override public void onError(String msg) {
+                        // stays at pendingSync=2 for next sync attempt
                     }
                 });
             }
+            // Auto-sync trigger (after remote call is set up to avoid race with download)
+            SyncManager.getInstance().triggerAutoSync();
         });
     }
 

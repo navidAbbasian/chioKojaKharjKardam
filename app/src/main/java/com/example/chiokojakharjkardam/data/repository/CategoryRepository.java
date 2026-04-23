@@ -77,15 +77,9 @@ public class CategoryRepository {
 
     public void update(Category category) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
-            if (NetworkMonitor.getInstance().isOnline() && category.getSupabaseId() > 0) {
-                category.setPendingSync(0);
-            } else {
-                category.setPendingSync(2);
-            }
+            // Always mark as pending update first; only clear after confirmed remote success
+            category.setPendingSync(2);
             categoryDao.update(category);
-
-            // Auto-sync trigger
-            SyncManager.getInstance().triggerAutoSync();
 
             if (NetworkMonitor.getInstance().isOnline() && category.getSupabaseId() > 0) {
                 Map<String, Object> upd = new HashMap<>();
@@ -95,13 +89,17 @@ public class CategoryRepository {
                 upd.put("type", category.getType());
                 remote.updateCategory(category.getSupabaseId(), upd,
                         new RemoteDataSource.Callback<Void>() {
-                            @Override public void onSuccess(Void v) {}
-                            @Override public void onError(String msg) {
+                            @Override public void onSuccess(Void v) {
                                 AppDatabase.databaseWriteExecutor.execute(() ->
-                                        categoryDao.updateSyncStatus(category.getId(), 2));
+                                        categoryDao.updateSyncStatus(category.getId(), 0));
+                            }
+                            @Override public void onError(String msg) {
+                                // stays at pendingSync=2 for next sync attempt
                             }
                         });
             }
+            // Auto-sync trigger (after remote call is set up)
+            SyncManager.getInstance().triggerAutoSync();
         });
     }
 

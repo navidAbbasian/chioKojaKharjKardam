@@ -76,28 +76,26 @@ public class TagRepository {
 
     public void update(Tag tag) {
         AppDatabase.databaseWriteExecutor.execute(() -> {
-            if (NetworkMonitor.getInstance().isOnline() && tag.getSupabaseId() > 0) {
-                tag.setPendingSync(0);
-            } else {
-                tag.setPendingSync(2);
-            }
+            // Always mark as pending update first; only clear after confirmed remote success
+            tag.setPendingSync(2);
             tagDao.update(tag);
-
-            // Auto-sync trigger
-            SyncManager.getInstance().triggerAutoSync();
 
             if (NetworkMonitor.getInstance().isOnline() && tag.getSupabaseId() > 0) {
                 Map<String, Object> upd = new HashMap<>();
                 upd.put("name", tag.getName());
                 upd.put("color", tag.getColor());
                 remote.updateTag(tag.getSupabaseId(), upd, new RemoteDataSource.Callback<Void>() {
-                    @Override public void onSuccess(Void v) {}
-                    @Override public void onError(String msg) {
+                    @Override public void onSuccess(Void v) {
                         AppDatabase.databaseWriteExecutor.execute(() ->
-                                tagDao.updateSyncStatus(tag.getId(), 2));
+                                tagDao.updateSyncStatus(tag.getId(), 0));
+                    }
+                    @Override public void onError(String msg) {
+                        // stays at pendingSync=2 for next sync attempt
                     }
                 });
             }
+            // Auto-sync trigger (after remote call is set up)
+            SyncManager.getInstance().triggerAutoSync();
         });
     }
 
