@@ -311,6 +311,19 @@
             app:iconSize="20dp"
             android:visibility="gone" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_export_excel"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="6dp"
+            android:text="@string/export_excel"
+            android:textSize="14sp"
+            app:icon="@drawable/ic_backup"
+            app:iconSize="20dp"
+            android:visibility="gone" />
+
         <!-- لیست گزارش‌ها -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_reports"

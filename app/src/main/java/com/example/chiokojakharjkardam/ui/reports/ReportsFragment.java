@@ -29,6 +29,7 @@ import com.example.chiokojakharjkardam.data.database.entity.TransactionListItem;
 import com.example.chiokojakharjkardam.ui.adapters.ReportAdapter;
 import com.example.chiokojakharjkardam.ui.adapters.TransactionAdapter;
 import com.example.chiokojakharjkardam.ui.components.PersianDatePickerDialog;
+import com.example.chiokojakharjkardam.utils.ExcelExportManager;
 import com.example.chiokojakharjkardam.utils.PdfExportManager;
 import com.example.chiokojakharjkardam.utils.PersianDateUtils;
 import com.google.android.material.button.MaterialButton;
@@ -56,6 +57,7 @@ public class ReportsFragment extends Fragment {
     private TextView tvSelectedRange;
     private TextView tvTransactionsCount;
     private MaterialButton btnExportPdf;
+    private MaterialButton btnExportExcel;
     private MaterialSwitch switchAllTransactions;
     private MaterialButtonToggleGroup toggleDateRange;
     private MaterialButtonToggleGroup toggleGroupBy;
@@ -72,9 +74,17 @@ public class ReportsFragment extends Fragment {
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     Uri uri = result.getData().getData();
-                    if (uri != null) {
-                        performPdfExport(uri);
-                    }
+                    if (uri != null) performPdfExport(uri);
+                }
+            }
+    );
+
+    private final ActivityResultLauncher<Intent> saveExcelLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Uri uri = result.getData().getData();
+                    if (uri != null) performExcelExport(uri);
                 }
             }
     );
@@ -109,6 +119,7 @@ public class ReportsFragment extends Fragment {
         tvSelectedRange = view.findViewById(R.id.tv_selected_range);
         tvTransactionsCount = view.findViewById(R.id.tv_transactions_count);
         btnExportPdf = view.findViewById(R.id.btn_export_pdf);
+        btnExportExcel = view.findViewById(R.id.btn_export_excel);
         switchAllTransactions = view.findViewById(R.id.switch_all_transactions);
 
         toggleDateRange = view.findViewById(R.id.toggle_date_range);
@@ -166,7 +177,7 @@ public class ReportsFragment extends Fragment {
         // وضعیت اولیه: سوئیچ خاموش، فیلترهای تفصیلی نمایش داده می‌شوند
         switchAllTransactions.setChecked(false);
         layoutDetailFilters.setVisibility(View.VISIBLE);
-        btnExportPdf.setVisibility(View.GONE);
+        btnExportPdf.setVisibility(View.GONE); btnExportExcel.setVisibility(View.GONE);
         cardTransactions.setVisibility(View.GONE);
     }
 
@@ -186,7 +197,7 @@ public class ReportsFragment extends Fragment {
                 layoutDetailFilters.setVisibility(View.VISIBLE);
                 // مخفی کردن کارت تراکنش‌ها تا زمانی که کاربر آیتمی انتخاب کند
                 cardTransactions.setVisibility(View.GONE);
-                btnExportPdf.setVisibility(View.GONE);
+                btnExportPdf.setVisibility(View.GONE); btnExportExcel.setVisibility(View.GONE);
                 tvTransactionsCount.setText("");
                 adapter.clearSelection();
                 viewModel.clearTransactionFilter();
@@ -203,6 +214,7 @@ public class ReportsFragment extends Fragment {
 
         // دکمه PDF
         btnExportPdf.setOnClickListener(v -> startPdfExport());
+        btnExportExcel.setOnClickListener(v -> startExcelExport());
 
         // انتخاب بازه زمانی
         toggleDateRange.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
@@ -261,49 +273,86 @@ public class ReportsFragment extends Fragment {
         savePdfLauncher.launch(intent);
     }
 
+    private List<TransactionDetail> buildDetails(AppDatabase db, List<Transaction> snapshot) {
+        List<TransactionDetail> details = new ArrayList<>();
+        for (Transaction t : snapshot) {
+            String catName = "-";
+            if (t.getCategoryId() != null && t.getCategoryId() > 0) {
+                var cat = db.categoryDao().getCategoryByIdSync(t.getCategoryId());
+                if (cat != null) catName = cat.getName();
+            }
+            List<Long> tagIds = db.transactionTagDao().getTagIdsByTransaction(t.getId());
+            StringBuilder tagBuilder = new StringBuilder();
+            if (tagIds != null && !tagIds.isEmpty()) {
+                var tags = db.tagDao().getTagsByIds(tagIds);
+                for (int i = 0; i < tags.size(); i++) {
+                    if (i > 0) tagBuilder.append("، ");
+                    tagBuilder.append(tags.get(i).getName());
+                }
+            }
+            String tagNames = tagBuilder.length() > 0 ? tagBuilder.toString() : "-";
+            String cardName = "-";
+            String memberName = "-";
+            var card = db.bankCardDao().getCardByIdSync(t.getCardId());
+            if (card != null) {
+                cardName = card.getBankName() + " - " + card.getCardNumber();
+                var member = db.memberDao().getMemberByIdSync(card.getMemberId());
+                if (member != null) memberName = member.getName();
+            }
+            details.add(new TransactionDetail(t, catName, tagNames, cardName, memberName));
+        }
+        return details;
+    }
+
     private void performPdfExport(Uri uri) {
         String title = getString(R.string.report_title);
         String dateRange = tvSelectedRange.getText().toString();
         List<Transaction> snapshot = new ArrayList<>(currentTransactions);
-
-        // در background thread اطلاعات category و tag رو می‌گیریم
         AppDatabase.databaseWriteExecutor.execute(() -> {
             AppDatabase db = AppDatabase.getDatabase(requireContext());
-            List<TransactionDetail> details = new ArrayList<>();
-
-            for (Transaction t : snapshot) {
-                // نام دسته‌بندی
-                String catName = "-";
-                if (t.getCategoryId() != null && t.getCategoryId() > 0) {
-                    var cat = db.categoryDao().getCategoryByIdSync(t.getCategoryId());
-                    if (cat != null) catName = cat.getName();
-                }
-
-                // نام تگ‌ها
-                List<Long> tagIds = db.transactionTagDao().getTagIdsByTransaction(t.getId());
-                StringBuilder tagBuilder = new StringBuilder();
-                if (tagIds != null && !tagIds.isEmpty()) {
-                    var tags = db.tagDao().getTagsByIds(tagIds);
-                    for (int i = 0; i < tags.size(); i++) {
-                        if (i > 0) tagBuilder.append("، ");
-                        tagBuilder.append(tags.get(i).getName());
-                    }
-                }
-                String tagNames = tagBuilder.length() > 0 ? tagBuilder.toString() : "-";
-
-                details.add(new TransactionDetail(t, catName, tagNames));
-            }
-
+            List<TransactionDetail> details = buildDetails(db, snapshot);
             PdfExportManager.exportTransactionsToPdf(
                     requireContext(), uri, details, title, dateRange,
                     new PdfExportManager.ExportCallback() {
-                        @Override
-                        public void onSuccess(String message) {
+                        @Override public void onSuccess(String message) {
                             if (isAdded()) requireActivity().runOnUiThread(() ->
                                     Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show());
                         }
-                        @Override
-                        public void onError(String error) {
+                        @Override public void onError(String error) {
+                            if (isAdded()) requireActivity().runOnUiThread(() ->
+                                    Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show());
+                        }
+                    });
+        });
+    }
+
+    private void startExcelExport() {
+        if (currentTransactions.isEmpty()) {
+            Toast.makeText(requireContext(), "داده‌ای برای صادر کردن وجود ندارد", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        intent.putExtra(Intent.EXTRA_TITLE, ExcelExportManager.generateExcelFileName("report"));
+        saveExcelLauncher.launch(intent);
+    }
+
+    private void performExcelExport(Uri uri) {
+        String title = getString(R.string.report_title);
+        String dateRange = tvSelectedRange.getText().toString();
+        List<Transaction> snapshot = new ArrayList<>(currentTransactions);
+        AppDatabase.databaseWriteExecutor.execute(() -> {
+            AppDatabase db = AppDatabase.getDatabase(requireContext());
+            List<TransactionDetail> details = buildDetails(db, snapshot);
+            ExcelExportManager.exportTransactionsToExcel(
+                    requireContext(), uri, details, title, dateRange,
+                    new ExcelExportManager.ExportCallback() {
+                        @Override public void onSuccess(String message) {
+                            if (isAdded()) requireActivity().runOnUiThread(() ->
+                                    Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show());
+                        }
+                        @Override public void onError(String error) {
                             if (isAdded()) requireActivity().runOnUiThread(() ->
                                     Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show());
                         }
@@ -361,7 +410,7 @@ public class ReportsFragment extends Fragment {
                     rvTransactions.setVisibility(View.VISIBLE);
                     layoutEmptyTransactions.setVisibility(View.GONE);
                     cardTransactions.setVisibility(View.VISIBLE);
-                    btnExportPdf.setVisibility(View.VISIBLE);
+                    btnExportPdf.setVisibility(View.VISIBLE); btnExportExcel.setVisibility(View.VISIBLE);
                     tvTransactionsCount.setText(getString(R.string.transaction_count_format, transactions.size()));
                     // در حالت «همه تراکنش‌ها» مجموع را از لیست تراکنش‌ها محاسبه کن
                     if (switchOn) {
@@ -377,14 +426,14 @@ public class ReportsFragment extends Fragment {
                     rvTransactions.setVisibility(View.GONE);
                     layoutEmptyTransactions.setVisibility(View.VISIBLE);
                     cardTransactions.setVisibility(View.VISIBLE);
-                    btnExportPdf.setVisibility(View.GONE);
+                    btnExportPdf.setVisibility(View.GONE); btnExportExcel.setVisibility(View.GONE);
                     tvTransactionsCount.setText("");
                     if (switchOn) {
                         tvTotalAmount.setText(numberFormat.format(0) + " " + getString(R.string.toman));
                     }
                 } else {
                     cardTransactions.setVisibility(View.GONE);
-                    btnExportPdf.setVisibility(View.GONE);
+                    btnExportPdf.setVisibility(View.GONE); btnExportExcel.setVisibility(View.GONE);
                 }
             }
         });
