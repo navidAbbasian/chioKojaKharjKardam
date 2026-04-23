@@ -201,6 +201,7 @@
     <string name="all_transactions">همه تراکنش‌ها</string>
     <string name="all_transactions_desc">نمایش همه تراکنش‌ها بدون فیلتر</string>
     <string name="export_pdf">دریافت PDF</string>
+    <string name="export_excel">دریافت Excel</string>
     <string name="pdf_export_success">فایل PDF با موفقیت ذخیره شد</string>
     <string name="pdf_export_error">خطا در ایجاد فایل PDF</string>
     <string name="report_title">گزارش تراکنش‌ها</string>
