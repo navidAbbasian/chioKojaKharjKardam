@@ -20,6 +20,7 @@ import com.example.chiokojakharjkardam.data.repository.CategoryRepository;
 import com.example.chiokojakharjkardam.data.repository.MemberRepository;
 import com.example.chiokojakharjkardam.data.repository.TagRepository;
 import com.example.chiokojakharjkardam.data.repository.TransactionRepository;
+import com.example.chiokojakharjkardam.utils.SessionManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -130,26 +131,20 @@ public class TransactionsViewModel extends AndroidViewModel {
             }
         }
 
-        // Build card and member maps for enrichment
+        // Build card map for enrichment
         Map<Long, BankCard> cardMap = new HashMap<>();
         List<BankCard> cards = allCards.getValue();
         if (cards != null) {
             for (BankCard c : cards) cardMap.put(c.getId(), c);
         }
 
-        Map<Long, String> memberNameByCardMemberId = new HashMap<>();
-        List<Member> members = allMembers.getValue();
-        if (members != null) {
-            for (Member m : members) memberNameByCardMemberId.put(m.getId(), m.getName());
-        }
-
         // Convert to TransactionListItem
         List<TransactionListItem> items = new ArrayList<>();
+        String currentUser = SessionManager.getInstance().getFullName();
         for (Transaction tx : result) {
             BankCard card = cardMap.get(tx.getCardId());
             String cardName = card != null ? (card.getBankName() + " - " + card.getCardNumber()) : "";
-            String memberName = card != null ? memberNameByCardMemberId.get(card.getMemberId()) : null;
-            items.add(new TransactionListItem(tx, cardName, memberName != null ? memberName : ""));
+            items.add(new TransactionListItem(tx, cardName, currentUser != null ? currentUser : ""));
         }
 
         filteredTransactions.setValue(items);

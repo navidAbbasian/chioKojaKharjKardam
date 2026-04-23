@@ -8,13 +8,12 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 
 import com.example.chiokojakharjkardam.data.database.entity.BankCard;
-import com.example.chiokojakharjkardam.data.database.entity.Member;
 import com.example.chiokojakharjkardam.data.database.entity.Transaction;
 import com.example.chiokojakharjkardam.data.database.entity.TransactionListItem;
 import com.example.chiokojakharjkardam.data.repository.BankCardRepository;
-import com.example.chiokojakharjkardam.data.repository.MemberRepository;
 import com.example.chiokojakharjkardam.data.repository.TransactionRepository;
 import com.example.chiokojakharjkardam.utils.PersianDateUtils;
+import com.example.chiokojakharjkardam.utils.SessionManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,14 +30,12 @@ public class HomeViewModel extends AndroidViewModel {
     private final LiveData<Long> monthIncome;
     private final LiveData<List<Transaction>> rawRecentTransactions;
     private final LiveData<List<BankCard>> allCards;
-    private final LiveData<List<Member>> allMembers;
     private final MediatorLiveData<List<TransactionListItem>> recentTransactions = new MediatorLiveData<>();
 
     public HomeViewModel(@NonNull Application application) {
         super(application);
         transactionRepository = new TransactionRepository(application);
         bankCardRepository = new BankCardRepository(application);
-        MemberRepository memberRepository = new MemberRepository(application);
 
         totalBalance = bankCardRepository.getComputedTotalBalance();
 
@@ -48,11 +45,9 @@ public class HomeViewModel extends AndroidViewModel {
 
         rawRecentTransactions = transactionRepository.getRecentTransactions(5);
         allCards = bankCardRepository.getAllCards();
-        allMembers = memberRepository.getAllMembers();
 
         recentTransactions.addSource(rawRecentTransactions, t -> buildListItems());
         recentTransactions.addSource(allCards, c -> buildListItems());
-        recentTransactions.addSource(allMembers, m -> buildListItems());
     }
 
     private void buildListItems() {
@@ -63,16 +58,12 @@ public class HomeViewModel extends AndroidViewModel {
         List<BankCard> cards = allCards.getValue();
         if (cards != null) for (BankCard c : cards) cardMap.put(c.getId(), c);
 
-        Map<Long, String> memberNames = new HashMap<>();
-        List<Member> members = allMembers.getValue();
-        if (members != null) for (Member m : members) memberNames.put(m.getId(), m.getName());
-
         List<TransactionListItem> items = new ArrayList<>();
+        String currentUser = SessionManager.getInstance().getFullName();
         for (Transaction tx : txs) {
             BankCard card = cardMap.get(tx.getCardId());
             String cardName = card != null ? (card.getBankName() + " - " + card.getCardNumber()) : "";
-            String memberName = card != null ? memberNames.get(card.getMemberId()) : null;
-            items.add(new TransactionListItem(tx, cardName, memberName != null ? memberName : ""));
+            items.add(new TransactionListItem(tx, cardName, currentUser != null ? currentUser : ""));
         }
         recentTransactions.setValue(items);
     }
